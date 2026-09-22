@@ -1,9 +1,9 @@
 name: Build ImpulsaTV APK
 
 on:
-  push:
+  pull_request:
     branches:
-      - chatgpt-apk-build-20260922
+      - main
 
 permissions:
   contents: read
