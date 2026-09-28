@@ -1,0 +1,41 @@
+--- a/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
++++ b/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
+@@ -455,6 +455,8 @@
+     val controller = remember {
+         LifecycleCameraController(context).apply {
+             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
++            setTapToFocusEnabled(true)
++            setPinchToZoomEnabled(true)
+             setEnabledUseCases(CameraController.IMAGE_ANALYSIS or CameraController.IMAGE_CAPTURE)
+         }
+     }
+@@ -463,6 +465,7 @@
+     DisposableEffect(lifecycleOwner) {
+         controller.setImageAnalysisAnalyzer(executor, analyzer)
+         controller.bindToLifecycle(lifecycleOwner)
++        runCatching { controller.setZoomRatio(1.20f) }
+         onDispose {
+             controller.clearImageAnalysisAnalyzer()
+             analyzer.close()
+@@ -516,9 +519,17 @@
+         )
+         Box(
+             Modifier.align(Alignment.Center)
+-                .fillMaxWidth(0.78f)
++                .fillMaxWidth(0.92f)
+                 .aspectRatio(0.72f)
+-                .border(3.dp, Color(0xFFFFC928), RoundedCornerShape(16.dp))
++                .border(4.dp, Color(0xFFFFC928), RoundedCornerShape(18.dp))
++        )
++        Text(
++            "Acercá la carta hasta llenar el marco · tocá sobre el nombre para enfocar",
++            color = Color.White,
++            fontSize = 12.sp,
++            fontWeight = FontWeight.SemiBold,
++            modifier = Modifier.align(Alignment.TopCenter)
++                .padding(12.dp)
++                .background(Color(0xAA000000), RoundedCornerShape(10.dp))
++                .padding(horizontal = 10.dp, vertical = 6.dp)
+         )
+         Button(
+             onClick = ::takePhoto,
