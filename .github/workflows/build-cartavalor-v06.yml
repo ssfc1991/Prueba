@@ -71,12 +71,14 @@ jobs:
               '.fillMaxWidth(0.92f)\n                .aspectRatio(0.72f)\n                .border(4.dp, Color(0xFFFFC928), RoundedCornerShape(18.dp))',
               1
           )
-          anchor = '''        Button(
-              onClick = ::takePhoto,
-              enabled = !capturing,
-              modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp)
-          ) {'''
-          label = '''        Text(
+          marker = "onClick = ::takePhoto"
+          idx = s.find(marker)
+          if idx < 0:
+              raise SystemExit("No se encontró el botón de captura")
+          button_start = s.rfind("        Button(", 0, idx)
+          if button_start < 0:
+              raise SystemExit("No se encontró el inicio del botón de captura")
+          label = """        Text(
               "Acercá la carta hasta llenar el marco · tocá sobre el nombre para enfocar",
               color = Color.White,
               fontSize = 12.sp,
@@ -86,8 +88,8 @@ jobs:
                   .background(Color(0xAA000000), RoundedCornerShape(10.dp))
                   .padding(horizontal = 10.dp, vertical = 6.dp)
           )
-          ''' + anchor
-          s = s.replace(anchor, label, 1)
+"""
+          s = s[:button_start] + label + s[button_start:]
           s = s.replace('V05 · Pokémon · USD / UYU', 'V06 · Pokémon · USD / UYU', 1)
           p.write_text(s)
           PY
