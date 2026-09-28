@@ -52,49 +52,7 @@ jobs:
       - name: Apply V06 framing and crop
         run: |
           cp v06patch/PhotoOcrProcessor.kt CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/PhotoOcrProcessor.kt
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt")
-          s = p.read_text()
-          s = s.replace(
-              '            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA\n            setEnabledUseCases(CameraController.IMAGE_ANALYSIS or CameraController.IMAGE_CAPTURE)',
-              '            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA\n            setTapToFocusEnabled(true)\n            setPinchToZoomEnabled(true)\n            setEnabledUseCases(CameraController.IMAGE_ANALYSIS or CameraController.IMAGE_CAPTURE)',
-              1
-          )
-          s = s.replace(
-              '        controller.bindToLifecycle(lifecycleOwner)\n        onDispose {',
-              '        controller.bindToLifecycle(lifecycleOwner)\n        runCatching { controller.setZoomRatio(1.20f) }\n        onDispose {',
-              1
-          )
-          s = s.replace(
-              '.fillMaxWidth(0.78f)\n                .aspectRatio(0.72f)\n                .border(3.dp, Color(0xFFFFC928), RoundedCornerShape(16.dp))',
-              '.fillMaxWidth(0.92f)\n                .aspectRatio(0.72f)\n                .border(4.dp, Color(0xFFFFC928), RoundedCornerShape(18.dp))',
-              1
-          )
-          marker = "onClick = ::takePhoto"
-          idx = s.find(marker)
-          if idx < 0:
-              raise SystemExit("No se encontró el botón de captura")
-          button_start = s.rfind("        Button(", 0, idx)
-          if button_start < 0:
-              raise SystemExit("No se encontró el inicio del botón de captura")
-          label = """        Text(
-              "Acercá la carta hasta llenar el marco · tocá sobre el nombre para enfocar",
-              color = Color.White,
-              fontSize = 12.sp,
-              fontWeight = FontWeight.SemiBold,
-              modifier = Modifier.align(Alignment.TopCenter)
-                  .padding(12.dp)
-                  .background(Color(0xAA000000), RoundedCornerShape(10.dp))
-                  .padding(horizontal = 10.dp, vertical = 6.dp)
-          )
-"""
-          s = s[:button_start] + label + s[button_start:]
-          s = s.replace('V05 · Pokémon · USD / UYU', 'V06 · Pokémon · USD / UYU', 1)
-          p.write_text(s)
-          PY
-          sed -i 's/versionCode = 4/versionCode = 6/' CartaValor_V03/app/build.gradle.kts
-          sed -i 's/versionName = "4.0"/versionName = "6.0"/' CartaValor_V03/app/build.gradle.kts
+          python3 v06patch/apply_v06.py
           grep -E 'versionCode|versionName' CartaValor_V03/app/build.gradle.kts
           grep -n 'fillMaxWidth(0.92f)' CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
           grep -n 'setZoomRatio' CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
