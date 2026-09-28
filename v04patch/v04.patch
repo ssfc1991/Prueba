@@ -1,0 +1,119 @@
+--- a/app/src/main/java/uy/impulsa/cartavalor/Models.kt
++++ b/app/src/main/java/uy/impulsa/cartavalor/Models.kt
+@@ -13,7 +13,8 @@
+     val number: String,
+     val setName: String = "",
+     val rarity: String? = null,
+-    val imageUrl: String? = null
++    val imageUrl: String? = null,
++    val visualScore: Int? = null
+ )
+ 
+ data class VariantPrice(
+--- a/app/src/main/java/uy/impulsa/cartavalor/CardRepository.kt
++++ b/app/src/main/java/uy/impulsa/cartavalor/CardRepository.kt
+@@ -21,12 +21,20 @@
+ 
+         val combined = linkedMapOf<String, CardCandidate>()
+         for (lang in listOf("es", "en")) {
+-            val results = searchLanguage(lang, name, number)
+-            results.forEach { combined.putIfAbsent(it.id, it) }
++            if (number.isNotBlank()) {
++                searchLanguage(lang, "", number).forEach { combined.putIfAbsent(it.id, it) }
++            }
++            if (name.isNotBlank()) {
++                searchLanguage(lang, name, "").forEach { combined.putIfAbsent(it.id, it) }
++            }
+         }
+ 
+         combined.values
+-            .sortedWith(compareByDescending<CardCandidate> { similarity(it.name, name) }.thenBy { it.name })
++            .sortedWith(
++                compareByDescending<CardCandidate> { if (number.isNotBlank() && it.number.equals(number.trim(), true)) 1 else 0 }
++                    .thenByDescending { similarity(it.name, name) }
++                    .thenBy { it.name }
++            )
+             .take(50)
+     }
+ 
+--- a/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
++++ b/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
+@@ -110,6 +110,7 @@
+     val repo = remember { CardRepository() }
+     val store = remember { CollectionStore(context.applicationContext) }
+     val historyStore = remember { HistoryStore(context.applicationContext) }
++    val visualMatcher = remember { VisualSimilarityMatcher(context.applicationContext) }
+     val scope = rememberCoroutineScope()
+ 
+     var screen by remember { mutableStateOf(Screen.SCAN) }
+@@ -141,11 +142,20 @@
+         scope.launch {
+             loading = true
+             message = null
+-            runCatching { repo.search(name, n) }
++            runCatching {
++                val found = repo.search(name, n)
++                if (capturedPhotoUri != null && found.isNotEmpty()) {
++                    visualMatcher.rank(capturedPhotoUri!!, found)
++                } else found
++            }
+                 .onSuccess {
+                     results = it
+                     screen = Screen.RESULTS
+-                    if (it.isEmpty()) message = "No encontré coincidencias. Probá escribir el número de la carta manualmente."
++                    if (it.isEmpty()) {
++                        message = "No encontré candidatos para comparar. Probá corregir el nombre o número y volver a buscar."
++                    } else if (capturedPhotoUri != null && it.any { card -> card.visualScore != null }) {
++                        message = "Ordené las coincidencias usando también la semejanza de la foto."
++                    }
+                 }
+                 .onFailure { message = it.message ?: "No se pudo consultar la carta." }
+             loading = false
+@@ -247,7 +257,7 @@
+                     ) {
+                         Column {
+                             Text("CartaValor", fontSize = 21.sp, fontWeight = FontWeight.Bold, color = Color.White)
+-                            Text("V03 · Pokémon · USD / UYU", color = Color(0xFF9FB3CB), fontSize = 11.sp)
++                            Text("V04 · Pokémon · USD / UYU", color = Color(0xFF9FB3CB), fontSize = 11.sp)
+                         }
+                         Spacer(Modifier.weight(1f))
+                         if (screen == Screen.COLLECTION || screen == Screen.HISTORY) {
+@@ -576,8 +586,8 @@
+     ) {
+         item {
+             TextButton(onClick = onBack) { Text("← Volver a escanear") }
+-            Text("Elegí la carta correcta", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+-            Text("Compará tu foto con la ilustración, la colección y el número.", color = Color(0xFFAAB7CA))
++            Text("Coincidencias por texto + foto", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
++            Text("Las cartas con foto se ordenan por semejanza visual. El porcentaje es orientativo, no una certeza.", color = Color(0xFFAAB7CA))
+         }
+         capturedPhotoUri?.let { uri ->
+             item {
+@@ -609,6 +619,14 @@
+                             "N.º ${card.number}${card.rarity?.let { " · $it" } ?: ""}",
+                             color = Color(0xFFB7C3D5)
+                         )
++                        card.visualScore?.let { score ->
++                            Text(
++                                if (score >= 75) "Similitud visual: $score% · muy parecida" else "Similitud visual: $score%",
++                                color = if (score >= 75) Color(0xFF64E38B) else Color(0xFF7FC8FF),
++                                fontWeight = FontWeight.Bold,
++                                fontSize = 13.sp
++                            )
++                        }
+                         Text("Tocar para comparar y ver precio", color = Color(0xFF91A4BC), fontSize = 12.sp)
+                     }
+                 }
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -12,8 +12,8 @@
+         applicationId = "uy.impulsa.cartavalor"
+         minSdk = 26
+         targetSdk = 35
+-        versionCode = 3
+-        versionName = "3.0"
++        versionCode = 4
++        versionName = "4.0"
+     }
+ 
+     compileOptions {
