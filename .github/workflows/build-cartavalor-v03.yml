@@ -34,6 +34,9 @@ jobs:
           unzip -t build-input/CartaValor_V03_source.zip
           unzip -q build-input/CartaValor_V03_source.zip -d .
 
+      - name: Apply V03 compile fix
+        run: sed -i '/import androidx.compose.foundation.layout.weight/d' CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
