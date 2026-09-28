@@ -1,0 +1,75 @@
+name: Build CartaValor V04 APK
+
+on:
+  push:
+    branches:
+      - chatgpt-cartavalor-v04-build-20260928
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Reconstruct CartaValor V03 base
+        run: |
+          cat \
+            build-input/parts/part00.bin \
+            build-input/parts/part01.bin \
+            build-input/parts/part02.bin \
+            build-input/parts/part03.bin \
+            build-input/parts/part04.bin \
+            build-input/parts/part05.bin \
+            build-input/parts/part06.bin \
+            build-input/parts/part07.bin \
+            build-input/parts/part08.bin \
+            build-input/parts/part09.bin \
+            build-input/parts/part10.bin \
+            > build-input/CartaValor_V03_source.zip
+          unzip -t build-input/CartaValor_V03_source.zip
+          unzip -q build-input/CartaValor_V03_source.zip -d .
+
+      - name: Apply CartaValor V04 changes
+        run: |
+          cd CartaValor_V03
+          patch -p1 < ../v04patch/v04.patch
+          sed -i '/import androidx.compose.foundation.layout.weight/d' app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
+          cp ../v04patch/VisualSimilarityMatcher.kt app/src/main/java/uy/impulsa/cartavalor/VisualSimilarityMatcher.kt
+          grep -E 'versionCode|versionName' app/build.gradle.kts
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK 35
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build V04 debug APK
+        working-directory: CartaValor_V03
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify V04 APK
+        run: |
+          test -f CartaValor_V03/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose CartaValor_V03/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload V04 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CartaValor_V04-debug-apk
+          path: CartaValor_V03/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
