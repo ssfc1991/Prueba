@@ -91,6 +91,8 @@ jobs:
 
       - name: Apply V14 collection transfer and icon
         run: |
+          cat v14patch/iconpart_00.b64 v14patch/iconpart_01.b64 v14patch/iconpart_02.b64 v14patch/iconpart_03.b64 v14patch/iconpart_04.b64 | base64 -d > v14patch/ic_launcher.webp
+          echo "c22ea5ee3ada735d3776054ac73031b18af95d3797c44e47e9d6c2bbf24795b5  v14patch/ic_launcher.webp" | sha256sum -c -
           cp v14patch/CollectionTransfer.kt CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/CollectionTransfer.kt
           python3 v14patch/apply_v14.py
           grep -E 'versionCode|versionName' CartaValor_V03/app/build.gradle.kts
