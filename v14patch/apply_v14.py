@@ -131,8 +131,8 @@ dialog = '''                pendingImport?.let { imported ->
                                     append(" variante")
                                     if (imported.size != 1) append("s")
                                     append(".")
-                                    pendingImportSource?.let { append("\nCreado con CartaValor $it.") }
-                                    append("\n\nPodés combinarla con tu colección o reemplazar la actual.")
+                                    pendingImportSource?.let { append(" Creado con CartaValor $it.") }
+                                    append(" Podés combinarla con tu colección o reemplazar la actual.")
                                 }
                             )
                         },
