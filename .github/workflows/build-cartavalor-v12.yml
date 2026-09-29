@@ -1,9 +1,9 @@
-name: Build CartaValor V11 APK
+name: Build CartaValor V12 APK
 
 on:
   push:
     branches:
-      - chatgpt-cartavalor-v11-build-20260928
+      - chatgpt-cartavalor-v12-build-20260928
 
 permissions:
   contents: read
@@ -80,6 +80,13 @@ jobs:
       - name: Apply V11 creator About tab
         run: |
           python3 v11patch/apply_v11.py
+
+      - name: Apply V12 polished About screen
+        run: |
+          python3 v12patch/apply_v12.py
+          grep -E 'versionCode|versionName' CartaValor_V03/app/build.gradle.kts
+          grep -n 'Silvio Fagúndez' CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
+          grep -n 'Privacidad' CartaValor_V03/app/src/main/java/uy/impulsa/cartavalor/MainActivity.kt
 
       - name: Apply V12 polished About screen
         run: |
