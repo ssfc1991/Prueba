@@ -202,27 +202,38 @@ public sealed partial class BrowserPane
 
     private TreeViewNode CreateTreeNode(string name, string path, Symbol symbol, bool lazy)
     {
+        var item = new TreeLocation
+        {
+            Name = name,
+            Path = path,
+            Symbol = symbol
+        };
+
         var node = new TreeViewNode
         {
-            Content = CreateTreeHeader(name, symbol),
+            Content = item,
             HasUnrealizedChildren = lazy && path != ThisPcPath && Directory.Exists(path)
         };
         _treePaths[node] = path;
+        _ = LoadTreeIconAsync(item);
         return node;
     }
 
-    private static UIElement CreateTreeHeader(string name, Symbol symbol)
+    private static async Task LoadTreeIconAsync(TreeLocation item)
     {
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-        panel.Children.Add(new SymbolIcon(symbol) { Width = 18, Height = 18 });
-        panel.Children.Add(new TextBlock
+        if (item.Path == ThisPcPath || !Directory.Exists(item.Path)) return;
+        try
         {
-            Text = name,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            MaxWidth = 170
-        });
-        return panel;
+            var root = Path.GetPathRoot(item.Path);
+            var isDrive = !string.IsNullOrWhiteSpace(root) &&
+                          string.Equals(root.TrimEnd('\\'), item.Path.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase);
+            var icon = await ShellIconService.GetIconAsync(item.Path, true, isDrive);
+            if (icon is not null)
+                item.IconSource = icon;
+        }
+        catch
+        {
+        }
     }
 
     private async void FolderTree_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
@@ -258,7 +269,12 @@ public sealed partial class BrowserPane
     private async void FolderTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
     {
         var node = sender.SelectedNode;
-        if (node is null || !_treePaths.TryGetValue(node, out var path)) return;
+        if (node is null) return;
+
+        var path = (node.Content as TreeLocation)?.Path;
+        if (string.IsNullOrWhiteSpace(path) && !_treePaths.TryGetValue(node, out path)) return;
+        if (string.IsNullOrWhiteSpace(path)) return;
+
         await NavigateToAsync(path);
     }
 }
