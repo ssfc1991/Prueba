@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:ImpulsaExplorer.Models">
 
-    <Grid Background="Transparent" Padding="{StaticResource CloverPagePadding}">
+    <Grid Background="{StaticResource CloverWindowBrush}" Padding="{StaticResource CloverPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -13,8 +13,8 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{StaticResource CloverPanelBrush}"
+                BorderBrush="{StaticResource CloverBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="8"
@@ -28,10 +28,10 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="BackButton" Grid.Column="0" Style="{StaticResource CloverNavigationButtonStyle}" Click="BackButton_Click" ToolTipService.ToolTip="Atrás (Alt+Izquierda)">
+                <Button x:Name="BackButton" Grid.Column="0" Style="{StaticResource CloverNavigationButtonStyle}" Click="BackButton_Click" ToolTipService.ToolTip="Atrás">
                     <FontIcon Glyph="&#xE72B;" FontSize="16"/>
                 </Button>
-                <Button x:Name="ForwardButton" Grid.Column="1" Style="{StaticResource CloverNavigationButtonStyle}" Click="ForwardButton_Click" ToolTipService.ToolTip="Adelante (Alt+Derecha)">
+                <Button x:Name="ForwardButton" Grid.Column="1" Style="{StaticResource CloverNavigationButtonStyle}" Click="ForwardButton_Click" ToolTipService.ToolTip="Adelante">
                     <FontIcon Glyph="&#xE72A;" FontSize="16"/>
                 </Button>
                 <Button x:Name="UpButton" Grid.Column="2" Style="{StaticResource CloverNavigationButtonStyle}" Click="UpButton_Click" ToolTipService.ToolTip="Subir un nivel">
@@ -44,19 +44,19 @@
                          KeyDown="AddressBox_KeyDown"
                          PlaceholderText="Escribí una ruta o pegala aquí"/>
 
-                <Button x:Name="RefreshButton" Grid.Column="4" Style="{StaticResource CloverNavigationButtonStyle}" Click="RefreshButton_Click" ToolTipService.ToolTip="Actualizar (F5)">
+                <Button x:Name="RefreshButton" Grid.Column="4" Style="{StaticResource CloverNavigationButtonStyle}" Click="RefreshButton_Click" ToolTipService.ToolTip="Actualizar">
                     <FontIcon Glyph="&#xE72C;" FontSize="16"/>
                 </Button>
             </Grid>
         </Border>
 
         <Border Grid.Row="1"
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Background="{StaticResource CloverPanelBrush}"
+                BorderBrush="{StaticResource CloverBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Margin="0,0,0,8">
-            <CommandBar DefaultLabelPosition="Collapsed" IsOpen="False" Background="Transparent">
+            <CommandBar DefaultLabelPosition="Collapsed" IsOpen="False" Background="Transparent" Foreground="{StaticResource CloverTextBrush}">
                 <AppBarButton Icon="Add" Label="Nueva carpeta" Click="NewFolderButton_Click" ToolTipService.ToolTip="Nueva carpeta"/>
                 <AppBarSeparator/>
                 <AppBarButton Icon="Cut" Label="Cortar" Click="CutButton_Click" ToolTipService.ToolTip="Cortar"/>
@@ -77,8 +77,8 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    Background="{StaticResource CloverPanelBrush}"
+                    BorderBrush="{StaticResource CloverBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="6">
@@ -92,7 +92,7 @@
                                Margin="10,8,10,6"
                                FontSize="12"
                                FontWeight="SemiBold"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                               Foreground="{StaticResource CloverMutedTextBrush}"/>
 
                     <ListView x:Name="QuickAccessList"
                               Grid.Row="1"
@@ -105,7 +105,6 @@
                             <Style TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                 <Setter Property="MinHeight" Value="34"/>
-                                <Setter Property="CornerRadius" Value="6"/>
                                 <Setter Property="Margin" Value="2,1"/>
                             </Style>
                         </ListView.ItemContainerStyle>
@@ -116,8 +115,8 @@
                                         <ColumnDefinition Width="22"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <FontIcon Glyph="{x:Bind Glyph}" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <FontIcon Glyph="{x:Bind Glyph}" FontSize="15" VerticalAlignment="Center" Foreground="{StaticResource CloverAccentBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{StaticResource CloverTextBrush}"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -126,11 +125,10 @@
             </Border>
 
             <Border Grid.Column="1"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    Background="{StaticResource CloverPanelBrush}"
+                    BorderBrush="{StaticResource CloverBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    Clip="{x:Null}">
+                    CornerRadius="8">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -139,7 +137,7 @@
 
                     <Grid Padding="12,8"
                           ColumnSpacing="8"
-                          Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                          Background="{StaticResource CloverPanelAltBrush}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32"/>
                             <ColumnDefinition Width="*"/>
@@ -147,10 +145,10 @@
                             <ColumnDefinition Width="160"/>
                             <ColumnDefinition Width="100"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Text="Nombre" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="2" Text="Tipo" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="3" Text="Modificado" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="4" Text="Tamaño" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        <TextBlock Grid.Column="1" Text="Nombre" FontWeight="SemiBold" Foreground="{StaticResource CloverTextBrush}"/>
+                        <TextBlock Grid.Column="2" Text="Tipo" FontWeight="SemiBold" Foreground="{StaticResource CloverTextBrush}"/>
+                        <TextBlock Grid.Column="3" Text="Modificado" FontWeight="SemiBold" Foreground="{StaticResource CloverTextBrush}"/>
+                        <TextBlock Grid.Column="4" Text="Tamaño" FontWeight="SemiBold" HorizontalAlignment="Right" Foreground="{StaticResource CloverTextBrush}"/>
                     </Grid>
 
                     <ListView x:Name="FilesListView"
@@ -178,11 +176,11 @@
                                         <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="100"/>
                                     </Grid.ColumnDefinitions>
-                                    <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="17" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="2" Text="{x:Bind TypeLabel}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Grid.Column="3" Text="{x:Bind ModifiedDisplay}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                    <TextBlock Grid.Column="4" Text="{x:Bind SizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="17" VerticalAlignment="Center" Foreground="{StaticResource CloverAccentBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{StaticResource CloverTextBrush}"/>
+                                    <TextBlock Grid.Column="2" Text="{x:Bind TypeLabel}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="3" Text="{x:Bind ModifiedDisplay}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}"/>
+                                    <TextBlock Grid.Column="4" Text="{x:Bind SizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource CloverMutedTextBrush}"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -192,7 +190,7 @@
         </Grid>
 
         <Grid Grid.Row="3" Margin="4,7,4,0">
-            <TextBlock x:Name="StatusText" Text="Listo" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock x:Name="StatusText" Text="Listo" FontSize="12" Foreground="{StaticResource CloverMutedTextBrush}"/>
             <ProgressRing x:Name="BusyRing" Width="16" Height="16" HorizontalAlignment="Right" IsActive="False" Visibility="Collapsed"/>
         </Grid>
     </Grid>
