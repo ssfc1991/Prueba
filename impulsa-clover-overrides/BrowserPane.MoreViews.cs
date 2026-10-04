@@ -1,3 +1,4 @@
+using ImpulsaExplorer.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
@@ -75,7 +76,7 @@ public sealed partial class BrowserPane
         IconsGridView.ItemTemplate = BuildIconTemplate(itemWidth, itemHeight, iconSize, fontSize, tiles);
         IconsGridView.UpdateLayout();
         ConfigureItemsWrapGrid(itemWidth, itemHeight);
-        RestoreSelection(FilesListView.SelectedItems.OfType<Models.FileEntry>().ToArray());
+        RestoreSelection(FilesListView.SelectedItems.OfType<FileEntry>().ToArray());
     }
 
     private void ConfigureItemsWrapGrid(double width, double height)
@@ -102,20 +103,20 @@ public sealed partial class BrowserPane
         string xaml;
         if (tiles)
         {
-            xaml = $"""
+            xaml = $$"""
 <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-  <Grid Width="{itemWidth - 8}" Height="{itemHeight - 6}" Padding="8,5" ColumnSpacing="10">
+  <Grid Width="{{itemWidth - 8}}" Height="{{itemHeight - 6}}" Padding="8,5" ColumnSpacing="10">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="{iconSize + 6}"/>
+      <ColumnDefinition Width="{{iconSize + 6}}"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <Grid Width="{iconSize}" Height="{iconSize}" VerticalAlignment="Center">
-      <SymbolIcon Symbol="{{Binding FallbackSymbol}}" Width="{iconSize}" Height="{iconSize}"/>
-      <Image Source="{{Binding IconSource}}" Width="{iconSize}" Height="{iconSize}" Stretch="Uniform"/>
+    <Grid Width="{{iconSize}}" Height="{{iconSize}}" VerticalAlignment="Center">
+      <SymbolIcon Symbol="{Binding FallbackSymbol}" Width="{{iconSize}}" Height="{{iconSize}}"/>
+      <Image Source="{Binding IconSource}" Width="{{iconSize}}" Height="{{iconSize}}" Stretch="Uniform"/>
     </Grid>
     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-      <TextBlock Text="{{Binding Name}}" FontSize="{fontSize}" TextTrimming="CharacterEllipsis" MaxLines="1"/>
-      <TextBlock Text="{{Binding TypeLabel}}" FontSize="11" Opacity="0.68" TextTrimming="CharacterEllipsis" MaxLines="1"/>
+      <TextBlock Text="{Binding Name}" FontSize="{{fontSize}}" TextTrimming="CharacterEllipsis" MaxLines="1"/>
+      <TextBlock Text="{Binding TypeLabel}" FontSize="11" Opacity="0.68" TextTrimming="CharacterEllipsis" MaxLines="1"/>
     </StackPanel>
   </Grid>
 </DataTemplate>
@@ -123,18 +124,18 @@ public sealed partial class BrowserPane
         }
         else
         {
-            xaml = $"""
+            xaml = $$"""
 <DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-  <Grid Width="{itemWidth - 8}" Height="{itemHeight - 6}" Padding="5">
+  <Grid Width="{{itemWidth - 8}}" Height="{{itemHeight - 6}}" Padding="5">
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <Grid Width="{iconSize}" Height="{iconSize}" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <SymbolIcon Symbol="{{Binding FallbackSymbol}}" Width="{iconSize}" Height="{iconSize}"/>
-      <Image Source="{{Binding IconSource}}" Width="{iconSize}" Height="{iconSize}" Stretch="Uniform"/>
+    <Grid Width="{{iconSize}}" Height="{{iconSize}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <SymbolIcon Symbol="{Binding FallbackSymbol}" Width="{{iconSize}}" Height="{{iconSize}}"/>
+      <Image Source="{Binding IconSource}" Width="{{iconSize}}" Height="{{iconSize}}" Stretch="Uniform"/>
     </Grid>
-    <TextBlock Grid.Row="1" Text="{{Binding Name}}" FontSize="{fontSize}" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
+    <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="{{fontSize}}" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
   </Grid>
 </DataTemplate>
 """;
