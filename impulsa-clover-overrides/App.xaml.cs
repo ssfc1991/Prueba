@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using ImpulsaExplorer.Services;
 using Microsoft.UI.Xaml;
 
 namespace ImpulsaExplorer;
@@ -11,25 +12,33 @@ public partial class App : Application
         Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
         "ImpulsaExplorer_Crash.log");
 
+    private readonly bool _shellMenuHostMode;
+    private readonly string _shellMenuRequestFile = string.Empty;
+
     public App()
     {
-        TryDeleteOldCrashLog();
+        _shellMenuHostMode = ShellMenuHostRunner.TryGetRequestFile(out _shellMenuRequestFile);
 
-        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
-            WriteLog("AppDomain.UnhandledException", e.ExceptionObject as Exception);
-
-        TaskScheduler.UnobservedTaskException += (_, e) =>
+        if (!_shellMenuHostMode)
         {
-            WriteLog("TaskScheduler.UnobservedTaskException", e.Exception);
-            e.SetObserved();
-        };
+            TryDeleteOldCrashLog();
 
-        UnhandledException += (_, e) =>
-        {
-            WriteLog("Application.UnhandledException", e.Exception);
-            ShowStartupError(e.Exception);
-            e.Handled = true;
-        };
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+                WriteLog("AppDomain.UnhandledException", e.ExceptionObject as Exception);
+
+            TaskScheduler.UnobservedTaskException += (_, e) =>
+            {
+                WriteLog("TaskScheduler.UnobservedTaskException", e.Exception);
+                e.SetObserved();
+            };
+
+            UnhandledException += (_, e) =>
+            {
+                WriteLog("Application.UnhandledException", e.Exception);
+                ShowStartupError(e.Exception);
+                e.Handled = true;
+            };
+        }
 
         try
         {
@@ -37,14 +46,24 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            WriteLog("Fallo en App.InitializeComponent", ex);
-            ShowStartupError(ex);
+            if (!_shellMenuHostMode)
+            {
+                WriteLog("Fallo en App.InitializeComponent", ex);
+                ShowStartupError(ex);
+            }
             throw;
         }
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (_shellMenuHostMode)
+        {
+            var exitCode = ShellMenuHostRunner.Run(_shellMenuRequestFile);
+            Environment.Exit(exitCode);
+            return;
+        }
+
         try
         {
             MainAppWindow = new MainWindow();
