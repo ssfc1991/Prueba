@@ -24,9 +24,7 @@ public sealed partial class MainWindow : Window
         {
             AppWindow.Resize(new Windows.Graphics.SizeInt32(1320, 840));
         }
-        catch
-        {
-        }
+        catch { }
 
         TryEnableMica();
         Closed += MainWindow_Closed;
@@ -36,7 +34,11 @@ public sealed partial class MainWindow : Window
 
     private void CreateTabView()
     {
-        MainTabs = new TabView();
+        MainTabs = new TabView
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch
+        };
         MainTabs.AddTabButtonClick += MainTabs_AddTabButtonClick;
         MainTabs.TabCloseRequested += MainTabs_TabCloseRequested;
         MainTabs.SelectionChanged += MainTabs_SelectionChanged;
@@ -51,11 +53,9 @@ public sealed partial class MainWindow : Window
             MainTabs.CanReorderTabs = true;
             MainTabs.TabWidthMode = TabViewWidthMode.SizeToContent;
             MainTabs.IsAddTabButtonVisible = true;
-            MainTabs.Margin = new Thickness(6, 4, 6, 6);
+            MainTabs.Margin = new Thickness(0);
         }
-        catch
-        {
-        }
+        catch { }
     }
 
     private async Task RestoreSessionAsync()
@@ -82,14 +82,8 @@ public sealed partial class MainWindow : Window
             App.WriteLog("Fallo restaurando sesión", ex);
             if (MainTabs.TabItems.Count == 0)
             {
-                try
-                {
-                    await AddTabAsync(BrowserPane.ThisPcPath, select: true);
-                }
-                catch (Exception fallbackEx)
-                {
-                    App.WriteLog("Fallo creando pestaña de recuperación", fallbackEx);
-                }
+                try { await AddTabAsync(BrowserPane.ThisPcPath, true); }
+                catch (Exception fallbackEx) { App.WriteLog("Fallo creando pestaña de recuperación", fallbackEx); }
             }
         }
     }
@@ -106,13 +100,40 @@ public sealed partial class MainWindow : Window
         };
 
         tab.ContextFlyout = CreateTabFlyout(tab);
-
         pane.TitleChanged += (_, title) => tab.Header = title;
+        pane.OpenInNewTabRequested += (_, requestedPath) => _ = AddTabAsync(requestedPath);
+        pane.LocationChanged += async (_, newPath) =>
+        {
+            ToolTipService.SetToolTip(tab, newPath == BrowserPane.ThisPcPath ? "Este equipo" : newPath);
+            await UpdateTabIconAsync(tab, newPath);
+        };
+
         MainTabs.TabItems.Add(tab);
         await pane.InitializeAsync(path);
 
         if (select) MainTabs.SelectedItem = tab;
         return tab;
+    }
+
+    private static async Task UpdateTabIconAsync(TabViewItem tab, string path)
+    {
+        try
+        {
+            if (path == BrowserPane.ThisPcPath)
+            {
+                tab.IconSource = new SymbolIconSource { Symbol = Symbol.Folder };
+                return;
+            }
+
+            var icon = await ShellIconService.GetIconAsync(path, true, false);
+            tab.IconSource = icon is null
+                ? new SymbolIconSource { Symbol = Symbol.Folder }
+                : new ImageIconSource { ImageSource = icon };
+        }
+        catch
+        {
+            tab.IconSource = new SymbolIconSource { Symbol = Symbol.Folder };
+        }
     }
 
     private async void MainTabs_AddTabButtonClick(TabView sender, object args)
@@ -129,12 +150,7 @@ public sealed partial class MainWindow : Window
 
     private void MainTabs_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
     {
-        if (args.Tab.Content is BrowserPane pane)
-            _closedTabs.Push(pane.CurrentPath);
-
-        sender.TabItems.Remove(args.Tab);
-        if (sender.TabItems.Count == 0)
-            _ = AddTabAsync(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        CloseTab(args.Tab, remember: true);
     }
 
     private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -145,13 +161,8 @@ public sealed partial class MainWindow : Window
 
     private void TryEnableMica()
     {
-        try
-        {
-            SystemBackdrop = new MicaBackdrop();
-        }
-        catch
-        {
-        }
+        try { SystemBackdrop = new MicaBackdrop(); }
+        catch { }
     }
 
     private MenuFlyout CreateTabFlyout(TabViewItem tab)
@@ -165,31 +176,55 @@ public sealed partial class MainWindow : Window
         var duplicate = new MenuFlyoutItem { Text = "Duplicar pestaña", Icon = new SymbolIcon(Symbol.Copy) };
         duplicate.Click += (_, _) =>
         {
-            if (tab.Content is BrowserPane pane)
-                _ = AddTabAsync(pane.CurrentPath);
+            if (tab.Content is BrowserPane pane) _ = AddTabAsync(pane.CurrentPath);
         };
         menu.Items.Add(duplicate);
-
-        menu.Items.Add(new MenuFlyoutSeparator());
 
         var reopen = new MenuFlyoutItem { Text = "Reabrir pestaña cerrada" };
         reopen.Click += (_, _) => RestoreClosedTab();
         menu.Items.Add(reopen);
 
+        menu.Items.Add(new MenuFlyoutSeparator());
+
         var close = new MenuFlyoutItem { Text = "Cerrar pestaña", Icon = new SymbolIcon(Symbol.Cancel) };
-        close.Click += (_, _) => CloseTab(tab);
+        close.Click += (_, _) => CloseTab(tab, remember: true);
         menu.Items.Add(close);
+
+        var closeOthers = new MenuFlyoutItem { Text = "Cerrar otras pestañas" };
+        closeOthers.Click += (_, _) => CloseOtherTabs(tab);
+        menu.Items.Add(closeOthers);
+
+        var closeRight = new MenuFlyoutItem { Text = "Cerrar pestañas a la derecha" };
+        closeRight.Click += (_, _) => CloseTabsToRight(tab);
+        menu.Items.Add(closeRight);
 
         return menu;
     }
 
-    private void CloseTab(TabViewItem tab)
+    private void CloseOtherTabs(TabViewItem keep)
     {
-        if (tab.Content is BrowserPane pane)
+        var tabs = MainTabs.TabItems.OfType<TabViewItem>().Where(t => !ReferenceEquals(t, keep)).ToArray();
+        foreach (var tab in tabs) CloseTab(tab, remember: true, ensureOneTab: false);
+        MainTabs.SelectedItem = keep;
+    }
+
+    private void CloseTabsToRight(TabViewItem anchor)
+    {
+        var tabs = MainTabs.TabItems.OfType<TabViewItem>().ToList();
+        var index = tabs.IndexOf(anchor);
+        if (index < 0) return;
+        foreach (var tab in tabs.Skip(index + 1).ToArray())
+            CloseTab(tab, remember: true, ensureOneTab: false);
+        MainTabs.SelectedItem = anchor;
+    }
+
+    private void CloseTab(TabViewItem tab, bool remember, bool ensureOneTab = true)
+    {
+        if (remember && tab.Content is BrowserPane pane)
             _closedTabs.Push(pane.CurrentPath);
 
         MainTabs.TabItems.Remove(tab);
-        if (MainTabs.TabItems.Count == 0)
+        if (ensureOneTab && MainTabs.TabItems.Count == 0)
             _ = AddTabAsync();
     }
 
@@ -229,8 +264,8 @@ public sealed partial class MainWindow : Window
 
     private void CloseCurrentTab()
     {
-        if (MainTabs.SelectedItem is not TabViewItem tab) return;
-        CloseTab(tab);
+        if (MainTabs.SelectedItem is TabViewItem tab)
+            CloseTab(tab, remember: true);
     }
 
     private void RestoreClosedTab()
