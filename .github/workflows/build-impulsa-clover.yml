@@ -36,6 +36,7 @@ jobs:
         run: |
           $root = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer"
           Copy-Item "impulsa-clover-overrides/App.xaml" "$root/App.xaml" -Force
+          Copy-Item "impulsa-clover-overrides/App.xaml.cs" "$root/App.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml" "$root/MainWindow.xaml" -Force
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml.cs" "$root/MainWindow.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml" "$root/Controls/BrowserPane.xaml" -Force
@@ -75,25 +76,7 @@ jobs:
       - name: Upload Clover portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-PORTABLE-win-x64
+          name: ImpulsaExplorer-CLOVER-COMPAT-win-x64
           path: artifact/portable/**
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Publish single EXE
-        run: dotnet publish "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj" -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:WindowsAppSDKSelfContained=true -p:EnableMsixTooling=true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -o "${{ github.workspace }}\\artifact\\single"
-
-      - name: Verify single executable
-        shell: pwsh
-        run: |
-          $exe = Join-Path "${{ github.workspace }}" "artifact\\single\\ImpulsaExplorer.exe"
-          if (-not (Test-Path $exe)) { throw "Single executable was not generated" }
-          Get-Item $exe | Format-List FullName,Length,LastWriteTime
-
-      - name: Upload Clover single EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: ImpulsaExplorer-CLOVER-SINGLE-EXE
-          path: artifact/single/ImpulsaExplorer.exe
           if-no-files-found: error
           retention-days: 7
