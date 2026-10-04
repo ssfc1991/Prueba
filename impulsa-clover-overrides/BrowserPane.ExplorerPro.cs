@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using ImpulsaExplorer.Models;
 using ImpulsaExplorer.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace ImpulsaExplorer.Controls;
 
@@ -179,13 +181,58 @@ public sealed partial class BrowserPane
         _treePaths.Clear();
 
         var user = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        AddTreeRoot("Inicio", user, Symbol.Home, lazy: true);
-        AddTreeRoot("Escritorio", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Symbol.GoToStart, lazy: true);
-        AddTreeRoot("Documentos", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Symbol.Document, lazy: true);
-        AddTreeRoot("Descargas", Path.Combine(user, "Downloads"), Symbol.Download, lazy: true);
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        var downloads = Path.Combine(user, "Downloads");
+        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        var music = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+        var videos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+
+        var quick = CreateGroupNode("Acceso rápido", Symbol.OutlineStar);
+        var seenQuick = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        AddChildIfDirectory(quick, "Escritorio", desktop, Symbol.GoToStart, seenQuick);
+        AddChildIfDirectory(quick, "Descargas", downloads, Symbol.Download, seenQuick);
+        AddChildIfDirectory(quick, "Documentos", documents, Symbol.Document, seenQuick);
+        AddChildIfDirectory(quick, "Imágenes", pictures, Symbol.Pictures, seenQuick);
+
+        foreach (var favorite in StateService.Current.State.Favorites.Where(Directory.Exists))
+        {
+            if (!seenQuick.Add(favorite)) continue;
+            var name = Path.GetFileName(favorite.TrimEnd('\\'));
+            if (string.IsNullOrWhiteSpace(name)) name = favorite;
+            quick.Children.Add(CreateTreeNode(name, favorite, Symbol.OutlineStar, lazy: true));
+        }
+
+        var oneDrives = new[]
+        {
+            Environment.GetEnvironmentVariable("OneDrive"),
+            Environment.GetEnvironmentVariable("OneDriveConsumer"),
+            Environment.GetEnvironmentVariable("OneDriveCommercial")
+        }
+        .Where(p => !string.IsNullOrWhiteSpace(p) && Directory.Exists(p))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Cast<string>()
+        .ToArray();
+
+        foreach (var oneDrive in oneDrives)
+        {
+            var name = oneDrives.Length == 1 ? "OneDrive" : $"OneDrive - {Path.GetFileName(oneDrive.TrimEnd('\\'))}";
+            var node = CreateTreeNode(name, oneDrive, Symbol.Folder, lazy: true);
+            node.IsExpanded = false;
+            FolderTree.RootNodes.Add(node);
+        }
 
         var thisPc = CreateTreeNode("Este equipo", ThisPcPath, Symbol.Folder, lazy: false);
+        thisPc.IsExpanded = true;
         FolderTree.RootNodes.Add(thisPc);
+
+        AddChildIfDirectory(thisPc, "Descargas", downloads, Symbol.Download);
+        AddChildIfDirectory(thisPc, "Documentos", documents, Symbol.Document);
+        AddChildIfDirectory(thisPc, "Escritorio", desktop, Symbol.GoToStart);
+        AddChildIfDirectory(thisPc, "Imágenes", pictures, Symbol.Pictures);
+        AddChildIfDirectory(thisPc, "Música", music, Symbol.MusicInfo);
+        AddChildIfDirectory(thisPc, "Vídeos", videos, Symbol.Video);
+
         foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady))
         {
             var name = string.IsNullOrWhiteSpace(drive.VolumeLabel)
@@ -193,12 +240,27 @@ public sealed partial class BrowserPane
                 : $"{drive.VolumeLabel} ({drive.Name.TrimEnd('\\')})";
             thisPc.Children.Add(CreateTreeNode(name, drive.RootDirectory.FullName, Symbol.Folder, lazy: true));
         }
+
+        FolderTree.RootNodes.Add(CreateTreeNode("Papelera de reciclaje", "shell:RecycleBinFolder", Symbol.Delete, lazy: false));
+        FolderTree.RootNodes.Add(CreateTreeNode("Red", "shell:NetworkPlacesFolder", Symbol.Folder, lazy: false));
     }
 
-    private void AddTreeRoot(string name, string path, Symbol symbol, bool lazy)
+    private TreeViewNode CreateGroupNode(string name, Symbol symbol)
     {
-        if (path != ThisPcPath && !Directory.Exists(path)) return;
-        FolderTree.RootNodes.Add(CreateTreeNode(name, path, symbol, lazy));
+        var node = new TreeViewNode
+        {
+            Content = new TreeLocation { Name = name, Path = string.Empty, Symbol = symbol },
+            IsExpanded = true
+        };
+        FolderTree.RootNodes.Add(node);
+        return node;
+    }
+
+    private void AddChildIfDirectory(TreeViewNode parent, string name, string path, Symbol symbol, HashSet<string>? seen = null)
+    {
+        if (!Directory.Exists(path)) return;
+        if (seen is not null && !seen.Add(path)) return;
+        parent.Children.Add(CreateTreeNode(name, path, symbol, lazy: true));
     }
 
     private TreeViewNode CreateTreeNode(string name, string path, Symbol symbol, bool lazy)
@@ -213,7 +275,7 @@ public sealed partial class BrowserPane
         var node = new TreeViewNode
         {
             Content = item,
-            HasUnrealizedChildren = lazy && path != ThisPcPath && Directory.Exists(path)
+            HasUnrealizedChildren = lazy && !path.StartsWith("shell:", StringComparison.OrdinalIgnoreCase) && path != ThisPcPath && Directory.Exists(path)
         };
         _treePaths[node] = path;
         _ = LoadTreeIconAsync(item);
@@ -222,7 +284,7 @@ public sealed partial class BrowserPane
 
     private static async Task LoadTreeIconAsync(TreeLocation item)
     {
-        if (item.Path == ThisPcPath || !Directory.Exists(item.Path)) return;
+        if (string.IsNullOrWhiteSpace(item.Path) || item.Path == ThisPcPath || item.Path.StartsWith("shell:", StringComparison.OrdinalIgnoreCase) || !Directory.Exists(item.Path)) return;
         try
         {
             var root = Path.GetPathRoot(item.Path);
@@ -247,7 +309,7 @@ public sealed partial class BrowserPane
         try
         {
             var directories = await Task.Run(() => Directory.EnumerateDirectories(path)
-                .Take(200)
+                .Take(250)
                 .Select(p => new DirectoryInfo(p))
                 .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
                 .Select(d => (d.Name, d.FullName))
@@ -276,6 +338,85 @@ public sealed partial class BrowserPane
         if (string.IsNullOrWhiteSpace(path) && !_treePaths.TryGetValue(node, out path)) return;
         if (string.IsNullOrWhiteSpace(path)) return;
 
+        if (path.StartsWith("shell:", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"No se pudo abrir: {ex.Message}";
+            }
+            return;
+        }
+
         await NavigateToAsync(path);
+    }
+
+    private void FavoriteAndRefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        FavoriteButton_Click(sender, e);
+        BuildFolderTree();
+    }
+
+    private void FileArea_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+    {
+        var paths = e.Items.OfType<FileEntry>()
+            .Select(i => i.FullPath)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (paths.Length == 0) return;
+        e.Data.SetText(string.Join(Environment.NewLine, paths));
+        e.Data.RequestedOperation = DataPackageOperation.Copy;
+    }
+
+    private void FileArea_DragOver(object sender, DragEventArgs e)
+    {
+        if (CurrentPath == ThisPcPath || !Directory.Exists(CurrentPath)) return;
+        if (!e.DataView.Contains(StandardDataFormats.StorageItems) && !e.DataView.Contains(StandardDataFormats.Text)) return;
+
+        e.AcceptedOperation = DataPackageOperation.Copy;
+        e.DragUIOverride.Caption = "Copiar a esta carpeta";
+        e.DragUIOverride.IsCaptionVisible = true;
+        e.Handled = true;
+    }
+
+    private async void FileArea_Drop(object sender, DragEventArgs e)
+    {
+        if (CurrentPath == ThisPcPath || !Directory.Exists(CurrentPath)) return;
+
+        var paths = new List<string>();
+        try
+        {
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                var items = await e.DataView.GetStorageItemsAsync();
+                paths.AddRange(items.Select(i => i.Path).Where(p => !string.IsNullOrWhiteSpace(p)));
+            }
+            else if (e.DataView.Contains(StandardDataFormats.Text))
+            {
+                var text = await e.DataView.GetTextAsync();
+                paths.AddRange(text.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            }
+
+            paths = paths
+                .Where(p => File.Exists(p) || Directory.Exists(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (paths.Count == 0) return;
+
+            SetBusy(true, "Copiando archivos arrastrados…");
+            FileOperationService.Current.SetClipboard(paths, false);
+            await FileOperationService.Current.PasteAsync(CurrentPath);
+            await NavigateToAsync(CurrentPath, false);
+        }
+        catch (Exception ex)
+        {
+            SetBusy(false, $"No se pudo completar el arrastre: {ex.Message}");
+        }
     }
 }
