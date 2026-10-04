@@ -144,7 +144,7 @@ public sealed partial class BrowserPane
     {
         if (sender is not ListViewBase source) return;
 
-        FrameworkElement? container = FindParent<GridViewItem>(e.OriginalSource as DependencyObject)
+        FrameworkElement? container = (FrameworkElement?)FindParent<GridViewItem>(e.OriginalSource as DependencyObject)
             ?? FindParent<ListViewItem>(e.OriginalSource as DependencyObject);
 
         var item = container switch
