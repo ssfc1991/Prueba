@@ -43,12 +43,14 @@ jobs:
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml.cs" "$root/Controls/BrowserPane.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.ExplorerPro.cs" "$root/Controls/BrowserPane.ExplorerPro.cs" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.NativeContext.cs" "$root/Controls/BrowserPane.NativeContext.cs" -Force
+          Copy-Item "impulsa-clover-overrides/BrowserPane.MoreViews.cs" "$root/Controls/BrowserPane.MoreViews.cs" -Force
           Copy-Item "impulsa-clover-overrides/FileEntry.cs" "$root/Models/FileEntry.cs" -Force
           Copy-Item "impulsa-clover-overrides/QuickLocation.cs" "$root/Models/QuickLocation.cs" -Force
           Copy-Item "impulsa-clover-overrides/BreadcrumbItem.cs" "$root/Models/BreadcrumbItem.cs" -Force
           Copy-Item "impulsa-clover-overrides/TreeLocation.cs" "$root/Models/TreeLocation.cs" -Force
           Copy-Item "impulsa-clover-overrides/ShellIconService.cs" "$root/Services/ShellIconService.cs" -Force
           Copy-Item "impulsa-clover-overrides/NativeShellContextMenuService.cs" "$root/Services/NativeShellContextMenuService.cs" -Force
+          Copy-Item "impulsa-clover-overrides/ShellMenuHostRunner.cs" "$root/Services/ShellMenuHostRunner.cs" -Force
           Copy-Item "impulsa-clover-overrides/Directory.Build.targets" "$root/Directory.Build.targets" -Force
 
           $explorerPro = "$root/Controls/BrowserPane.ExplorerPro.cs"
@@ -100,10 +102,10 @@ jobs:
           Stop-Process -Id $p.Id -Force
           Write-Host 'Startup smoke test passed.'
 
-      - name: Upload Clover Explorer Max portable
+      - name: Upload Clover Safe Shell More Views portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-NATIVE-SHELL-CONTEXT-win-x64
+          name: ImpulsaExplorer-CLOVER-SAFE-SHELL-MORE-VIEWS-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
