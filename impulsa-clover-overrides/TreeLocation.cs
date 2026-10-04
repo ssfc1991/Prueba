@@ -24,4 +24,6 @@ public sealed class TreeLocation : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public override string ToString() => Name;
 }
