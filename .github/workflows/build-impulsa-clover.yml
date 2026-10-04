@@ -31,7 +31,7 @@ jobs:
           $project = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj"
           if (-not (Test-Path $project)) { throw "Project reconstruction failed" }
 
-      - name: Apply Clover Windows Explorer overrides
+      - name: Apply Clover Explorer Pro overrides
         shell: pwsh
         run: |
           $root = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer"
@@ -42,15 +42,10 @@ jobs:
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml" "$root/Controls/BrowserPane.xaml" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml.cs" "$root/Controls/BrowserPane.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/FileEntry.cs" "$root/Models/FileEntry.cs" -Force
+          Copy-Item "impulsa-clover-overrides/QuickLocation.cs" "$root/Models/QuickLocation.cs" -Force
+          Copy-Item "impulsa-clover-overrides/BreadcrumbItem.cs" "$root/Models/BreadcrumbItem.cs" -Force
           Copy-Item "impulsa-clover-overrides/ShellIconService.cs" "$root/Services/ShellIconService.cs" -Force
           Copy-Item "impulsa-clover-overrides/Directory.Build.targets" "$root/Directory.Build.targets" -Force
-
-          $quickLocation = "$root/Models/QuickLocation.cs"
-          $text = Get-Content $quickLocation -Raw
-          $text = $text.Replace('public required string Name { get; init; }', 'public string Name { get; set; } = "";')
-          $text = $text.Replace('public required string Path { get; init; }', 'public string Path { get; set; } = "";')
-          $text = $text.Replace('public required string Glyph { get; init; }', 'public string Glyph { get; set; } = "";')
-          Set-Content -Path $quickLocation -Value $text -Encoding utf8
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
@@ -94,10 +89,10 @@ jobs:
           Stop-Process -Id $p.Id -Force
           Write-Host 'Startup smoke test passed.'
 
-      - name: Upload Clover Windows Icons portable
+      - name: Upload Clover Explorer Pro portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-WINDOWS-ICONS-win-x64
+          name: ImpulsaExplorer-CLOVER-EXPLORER-PRO-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
