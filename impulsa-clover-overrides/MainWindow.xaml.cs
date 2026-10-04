@@ -11,11 +11,13 @@ namespace ImpulsaExplorer;
 public sealed partial class MainWindow : Window
 {
     private readonly Stack<string> _closedTabs = new();
+    private TabView MainTabs = null!;
 
     public MainWindow()
     {
         InitializeComponent();
         Title = "Impulsa Explorer — Clover Edition";
+        CreateTabView();
         ConfigureTabViewSafely();
 
         try
@@ -32,6 +34,15 @@ public sealed partial class MainWindow : Window
         _ = RestoreSessionAsync();
     }
 
+    private void CreateTabView()
+    {
+        MainTabs = new TabView();
+        MainTabs.AddTabButtonClick += MainTabs_AddTabButtonClick;
+        MainTabs.TabCloseRequested += MainTabs_TabCloseRequested;
+        MainTabs.SelectionChanged += MainTabs_SelectionChanged;
+        RootGrid.Children.Add(MainTabs);
+    }
+
     private void ConfigureTabViewSafely()
     {
         try
@@ -44,8 +55,6 @@ public sealed partial class MainWindow : Window
         }
         catch
         {
-            // Si una versión de Windows no soporta una opción visual,
-            // la app sigue funcionando con los valores predeterminados.
         }
     }
 
@@ -72,7 +81,16 @@ public sealed partial class MainWindow : Window
         {
             App.WriteLog("Fallo restaurando sesión", ex);
             if (MainTabs.TabItems.Count == 0)
-                await AddTabAsync(BrowserPane.ThisPcPath, select: true);
+            {
+                try
+                {
+                    await AddTabAsync(BrowserPane.ThisPcPath, select: true);
+                }
+                catch (Exception fallbackEx)
+                {
+                    App.WriteLog("Fallo creando pestaña de recuperación", fallbackEx);
+                }
+            }
         }
     }
 
@@ -99,7 +117,14 @@ public sealed partial class MainWindow : Window
 
     private async void MainTabs_AddTabButtonClick(TabView sender, object args)
     {
-        await AddTabAsync(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        try
+        {
+            await AddTabAsync(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        }
+        catch (Exception ex)
+        {
+            App.WriteLog("Fallo creando nueva pestaña", ex);
+        }
     }
 
     private void MainTabs_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
