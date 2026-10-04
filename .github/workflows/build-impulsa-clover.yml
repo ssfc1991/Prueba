@@ -40,6 +40,7 @@ jobs:
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml" "$root/MainWindow.xaml" -Force
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml.cs" "$root/MainWindow.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml" "$root/Controls/BrowserPane.xaml" -Force
+          Copy-Item "impulsa-clover-overrides/Directory.Build.targets" "$root/Directory.Build.targets" -Force
 
           $fileEntry = "$root/Models/FileEntry.cs"
           $text = Get-Content $fileEntry -Raw
@@ -66,11 +67,17 @@ jobs:
       - name: Publish portable Windows x64
         run: dotnet publish "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj" -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:WindowsAppSDKSelfContained=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -o "${{ github.workspace }}\\artifact\\portable"
 
-      - name: Verify portable executable
+      - name: Verify executable and app PRI
         shell: pwsh
         run: |
-          $exe = Join-Path "${{ github.workspace }}" "artifact\\portable\\ImpulsaExplorer.exe"
+          $out = Join-Path "${{ github.workspace }}" "artifact\\portable"
+          $exe = Join-Path $out "ImpulsaExplorer.exe"
           if (-not (Test-Path $exe)) { throw "Portable executable was not generated" }
+          $pris = @(Get-ChildItem $out -Filter "*.pri" -File)
+          Write-Host "PRI files in publish output:"
+          $pris | ForEach-Object { Write-Host "  $($_.Name)  $($_.Length) bytes" }
+          $appPri = $pris | Where-Object { $_.Name -ieq 'ImpulsaExplorer.pri' -or $_.Name -ieq 'resources.pri' }
+          if (-not $appPri) { throw "Application PRI is missing from publish output" }
           Get-Item $exe | Format-List FullName,Length,LastWriteTime
 
       - name: Smoke test startup
@@ -81,7 +88,7 @@ jobs:
           $log = Join-Path $desktop 'ImpulsaExplorer_Crash.log'
           if (Test-Path $log) { Remove-Item $log -Force }
           $p = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -PassThru
-          Start-Sleep -Seconds 8
+          Start-Sleep -Seconds 10
           if (Test-Path $log) {
             Write-Host 'Crash log detected:'
             Get-Content $log
@@ -92,10 +99,10 @@ jobs:
           Stop-Process -Id $p.Id -Force
           Write-Host 'Startup smoke test passed.'
 
-      - name: Upload Clover portable
+      - name: Upload Clover fixed portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-XAML-FIX-win-x64
+          name: ImpulsaExplorer-CLOVER-PRI-FIX-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
