@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
 namespace ImpulsaExplorer.Models;
@@ -14,8 +15,8 @@ public sealed class FileEntry : INotifyPropertyChanged
     public bool IsDrive { get; set; }
     public long? SizeBytes { get; set; }
     public DateTime? Modified { get; set; }
-    public string TypeLabel { get; set; } = "";
-    public string IconGlyph { get; set; } = "\uE8A5";
+    public string TypeLabel { get; set; } = string.Empty;
+    public Symbol FallbackSymbol { get; set; } = Symbol.Document;
 
     public ImageSource? IconSource
     {
@@ -28,8 +29,8 @@ public sealed class FileEntry : INotifyPropertyChanged
         }
     }
 
-    public string SizeDisplay => IsFolder || IsDrive || SizeBytes is null ? "" : FormatSize(SizeBytes.Value);
-    public string ModifiedDisplay => Modified?.ToString("dd/MM/yyyy HH:mm") ?? "";
+    public string SizeDisplay => IsFolder || IsDrive || SizeBytes is null ? string.Empty : FormatSize(SizeBytes.Value);
+    public string ModifiedDisplay => Modified?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
