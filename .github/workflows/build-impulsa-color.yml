@@ -1,0 +1,55 @@
+name: Build Impulsa Explorer Color Windows
+
+on:
+  push:
+    branches:
+      - impulsa-color-build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Reconstruct source archive
+        shell: pwsh
+        run: |
+          $parts = Get-ChildItem "impulsa-color/source.part*.b64" | Sort-Object Name
+          if ($parts.Count -ne 4) { throw "Expected 4 source chunks, found $($parts.Count)" }
+          $b64 = ($parts | ForEach-Object { Get-Content $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes("impulsa-color-source.zip", [Convert]::FromBase64String($b64))
+          Expand-Archive -Path "impulsa-color-source.zip" -DestinationPath "impulsa-color-src" -Force
+          if (-not (Test-Path "impulsa-color-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj")) { throw "Project reconstruction failed" }
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore "impulsa-color-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj" -r win-x64
+
+      - name: Publish Windows x64
+        run: dotnet publish "impulsa-color-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj" -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:WindowsAppSDKSelfContained=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -o "${{ github.workspace }}\\artifact\\ImpulsaExplorerColor"
+
+      - name: Verify executable
+        shell: pwsh
+        run: |
+          $exe = Join-Path "${{ github.workspace }}" "artifact\\ImpulsaExplorerColor\\ImpulsaExplorer.exe"
+          if (-not (Test-Path $exe)) { throw "ImpulsaExplorer.exe was not generated" }
+          Get-Item $exe | Format-List FullName,Length,LastWriteTime
+
+      - name: Upload complete portable app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImpulsaExplorer-COLOR-COMPLETO-win-x64
+          path: artifact/ImpulsaExplorerColor/**
+          if-no-files-found: error
+          retention-days: 7
