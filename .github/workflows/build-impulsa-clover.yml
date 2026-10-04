@@ -45,6 +45,7 @@ jobs:
           Copy-Item "impulsa-clover-overrides/FileEntry.cs" "$root/Models/FileEntry.cs" -Force
           Copy-Item "impulsa-clover-overrides/QuickLocation.cs" "$root/Models/QuickLocation.cs" -Force
           Copy-Item "impulsa-clover-overrides/BreadcrumbItem.cs" "$root/Models/BreadcrumbItem.cs" -Force
+          Copy-Item "impulsa-clover-overrides/TreeLocation.cs" "$root/Models/TreeLocation.cs" -Force
           Copy-Item "impulsa-clover-overrides/ShellIconService.cs" "$root/Services/ShellIconService.cs" -Force
           Copy-Item "impulsa-clover-overrides/Directory.Build.targets" "$root/Directory.Build.targets" -Force
 
@@ -93,7 +94,7 @@ jobs:
       - name: Upload Clover Explorer Max portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-EXPLORER-MAX-win-x64
+          name: ImpulsaExplorer-CLOVER-EXPLORER-MAX-TREEFIX-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
