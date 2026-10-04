@@ -1,0 +1,1 @@
+Trigger rebuild after WinUI XAML model compatibility fix.
