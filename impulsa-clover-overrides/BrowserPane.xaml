@@ -7,145 +7,180 @@
 
     <UserControl.Resources>
         <Style x:Key="RibbonButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="82"/>
+            <Setter Property="MinWidth" Value="72"/>
             <Setter Property="Height" Value="52"/>
-            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Padding" Value="7,4"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="2"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
 
     <Grid Background="{StaticResource CloverWindowBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="92"/>
+            <RowDefinition Height="96"/>
             <RowDefinition Height="46"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
+        <!-- Ribbon clásico tipo Explorer / Clover -->
         <TabView Grid.Row="0"
+                 SelectedIndex="1"
                  IsAddTabButtonVisible="False"
                  TabWidthMode="SizeToContent"
                  Background="{StaticResource CloverToolbarBrush}"
                  BorderBrush="{StaticResource CloverBorderBrush}"
                  BorderThickness="0,0,0,1">
             <TabViewItem Header="Archivo" IsClosable="False">
-                <Grid Height="54" Background="{StaticResource CloverCommandBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="6" Padding="8,1">
-                        <Border BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,8,0">
-                            <StackPanel Orientation="Horizontal" Spacing="2">
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="NewFolderButton_Click" ToolTipService.ToolTip="Nueva carpeta">
-                                    <StackPanel Spacing="2"><SymbolIcon Symbol="Add"/><TextBlock Text="Nueva carpeta" FontSize="11" TextAlignment="Center"/></StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="FavoriteButton_Click" ToolTipService.ToolTip="Agregar o quitar de Favoritos">
-                                    <StackPanel Spacing="2"><SymbolIcon Symbol="Favorite"/><TextBlock Text="Favorito" FontSize="11" TextAlignment="Center"/></StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Border>
+                <Grid Height="56" Background="{StaticResource CloverCommandBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="3" Padding="8,2">
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="NewFolderButton_Click">
+                            <StackPanel Spacing="2"><SymbolIcon Symbol="Add"/><TextBlock Text="Nueva carpeta" FontSize="11"/></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="FavoriteAndRefreshButton_Click">
+                            <StackPanel Spacing="2"><SymbolIcon Symbol="Favorite"/><TextBlock Text="Anclar" FontSize="11"/></StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </TabViewItem>
 
             <TabViewItem Header="Inicio" IsClosable="False">
-                <Grid Height="54" Background="{StaticResource CloverCommandBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="6" Padding="8,1">
-                        <Border BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,8,0">
-                            <StackPanel Orientation="Horizontal" Spacing="2">
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="CopyButton_Click" ToolTipService.ToolTip="Copiar"><StackPanel Spacing="2"><SymbolIcon Symbol="Copy"/><TextBlock Text="Copiar" FontSize="11"/></StackPanel></Button>
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="PasteButton_Click" ToolTipService.ToolTip="Pegar"><StackPanel Spacing="2"><SymbolIcon Symbol="Paste"/><TextBlock Text="Pegar" FontSize="11"/></StackPanel></Button>
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="CutButton_Click" ToolTipService.ToolTip="Cortar"><StackPanel Spacing="2"><SymbolIcon Symbol="Cut"/><TextBlock Text="Cortar" FontSize="11"/></StackPanel></Button>
+                <Grid Height="56" Background="{StaticResource CloverCommandBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="0" Padding="7,2">
+                        <Border BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,7,0" Margin="0,0,7,0">
+                            <StackPanel Orientation="Horizontal" Spacing="1">
+                                <Button Style="{StaticResource RibbonButtonStyle}" Click="PasteButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Paste"/><TextBlock Text="Pegar" FontSize="11"/></StackPanel></Button>
+                                <Button Style="{StaticResource RibbonButtonStyle}" Click="CopyButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Copy"/><TextBlock Text="Copiar" FontSize="11"/></StackPanel></Button>
+                                <Button Style="{StaticResource RibbonButtonStyle}" Click="CutButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Cut"/><TextBlock Text="Cortar" FontSize="11"/></StackPanel></Button>
                             </StackPanel>
                         </Border>
-                        <Border BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,8,0">
-                            <StackPanel Orientation="Horizontal" Spacing="2">
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="RenameButton_Click" ToolTipService.ToolTip="Cambiar nombre"><StackPanel Spacing="2"><SymbolIcon Symbol="Rename"/><TextBlock Text="Cambiar nombre" FontSize="10.5" TextAlignment="Center"/></StackPanel></Button>
-                                <Button Style="{StaticResource RibbonButtonStyle}" Click="DeleteButton_Click" ToolTipService.ToolTip="Enviar a la Papelera"><StackPanel Spacing="2"><SymbolIcon Symbol="Delete"/><TextBlock Text="Eliminar" FontSize="11"/></StackPanel></Button>
+                        <Border BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,7,0" Margin="0,0,7,0">
+                            <StackPanel Orientation="Horizontal" Spacing="1">
+                                <Button Style="{StaticResource RibbonButtonStyle}" Click="RenameButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Rename"/><TextBlock Text="Renombrar" FontSize="11"/></StackPanel></Button>
+                                <Button Style="{StaticResource RibbonButtonStyle}" Click="DeleteButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Delete"/><TextBlock Text="Eliminar" FontSize="11"/></StackPanel></Button>
                             </StackPanel>
                         </Border>
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="NewFolderButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Add"/><TextBlock Text="Nueva carpeta" FontSize="11"/></StackPanel></Button>
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="FavoriteAndRefreshButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Favorite"/><TextBlock Text="Acceso rápido" FontSize="10.5"/></StackPanel></Button>
                     </StackPanel>
                 </Grid>
             </TabViewItem>
 
             <TabViewItem Header="Compartir" IsClosable="False">
-                <Grid Height="54" Background="{StaticResource CloverCommandBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="4" Padding="8,1">
-                        <Button Style="{StaticResource RibbonButtonStyle}" Click="CopyButton_Click" ToolTipService.ToolTip="Copiar selección"><StackPanel Spacing="2"><SymbolIcon Symbol="Copy"/><TextBlock Text="Copiar" FontSize="11"/></StackPanel></Button>
-                        <Button Style="{StaticResource RibbonButtonStyle}" Click="FavoriteButton_Click" ToolTipService.ToolTip="Guardar ubicación como favorita"><StackPanel Spacing="2"><SymbolIcon Symbol="Favorite"/><TextBlock Text="Anclar" FontSize="11"/></StackPanel></Button>
+                <Grid Height="56" Background="{StaticResource CloverCommandBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="2" Padding="8,2">
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="CopyButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Copy"/><TextBlock Text="Copiar" FontSize="11"/></StackPanel></Button>
+                        <Button Style="{StaticResource RibbonButtonStyle}" Click="FavoriteAndRefreshButton_Click"><StackPanel Spacing="2"><SymbolIcon Symbol="Favorite"/><TextBlock Text="Anclar" FontSize="11"/></StackPanel></Button>
                     </StackPanel>
                 </Grid>
             </TabViewItem>
 
             <TabViewItem Header="Vista" IsClosable="False">
-                <Grid Height="54" Background="{StaticResource CloverCommandBrush}" Padding="10,5">
+                <Grid Height="56" Background="{StaticResource CloverCommandBrush}" Padding="10,5">
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <TextBlock Text="Diseño" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                        <ComboBox x:Name="ViewModeComboBox" Width="132" SelectedIndex="0" SelectionChanged="ViewModeComboBox_SelectionChanged">
+                        <ComboBox x:Name="ViewModeComboBox" Width="140" SelectedIndex="0" SelectionChanged="ViewModeComboBox_SelectionChanged">
                             <ComboBoxItem Content="Detalles" Tag="Details"/>
                             <ComboBoxItem Content="Lista" Tag="List"/>
                             <ComboBoxItem Content="Iconos" Tag="Icons"/>
                         </ComboBox>
-                        <Button Width="86" Height="34" Click="RefreshButton_Click" ToolTipService.ToolTip="Actualizar carpeta"><StackPanel Orientation="Horizontal" Spacing="7"><SymbolIcon Symbol="Sync"/><TextBlock Text="Actualizar"/></StackPanel></Button>
+                        <Button Width="92" Height="34" Click="RefreshButton_Click"><StackPanel Orientation="Horizontal" Spacing="7"><SymbolIcon Symbol="Sync"/><TextBlock Text="Actualizar"/></StackPanel></Button>
                     </StackPanel>
                 </Grid>
             </TabViewItem>
         </TabView>
 
-        <Grid Grid.Row="1" Padding="8,5" ColumnSpacing="3" Background="{StaticResource CloverToolbarBrush}">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <!-- Navegación y barra de dirección -->
+        <Grid Grid.Row="1" Padding="7,5" ColumnSpacing="3" Background="{StaticResource CloverToolbarBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/><ColumnDefinition Width="230"/><ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Grid.Column="0" Style="{StaticResource CloverNavigationButtonStyle}" Click="BackButton_Click" ToolTipService.ToolTip="Atrás"><SymbolIcon Symbol="Previous"/></Button>
             <Button x:Name="ForwardButton" Grid.Column="1" Style="{StaticResource CloverNavigationButtonStyle}" Click="ForwardButton_Click" ToolTipService.ToolTip="Adelante"><SymbolIcon Symbol="Next"/></Button>
-            <Button x:Name="UpButton" Grid.Column="2" Style="{StaticResource CloverNavigationButtonStyle}" Click="UpButton_Click" ToolTipService.ToolTip="Subir un nivel"><SymbolIcon Symbol="Up"/></Button>
+            <Button x:Name="UpButton" Grid.Column="2" Style="{StaticResource CloverNavigationButtonStyle}" Click="UpButton_Click" ToolTipService.ToolTip="Subir"><SymbolIcon Symbol="Up"/></Button>
             <Button x:Name="HomeButton" Grid.Column="3" Style="{StaticResource CloverNavigationButtonStyle}" Click="HomeButton_Click" ToolTipService.ToolTip="Inicio"><SymbolIcon Symbol="Home"/></Button>
             <Border Grid.Column="4" Margin="5,0" Background="White" BorderBrush="{StaticResource CloverBorderBrush}" BorderThickness="1" CornerRadius="2">
                 <Grid>
-                    <BreadcrumbBar x:Name="PathBreadcrumbBar" ItemsSource="{x:Bind Breadcrumbs}" ItemClicked="PathBreadcrumbBar_ItemClicked" Margin="4,0,36,0" VerticalAlignment="Center"><BreadcrumbBar.ItemTemplate><DataTemplate x:DataType="models:BreadcrumbItem"><TextBlock Text="{x:Bind Name}" FontSize="13"/></DataTemplate></BreadcrumbBar.ItemTemplate></BreadcrumbBar>
+                    <BreadcrumbBar x:Name="PathBreadcrumbBar" ItemsSource="{x:Bind Breadcrumbs}" ItemClicked="PathBreadcrumbBar_ItemClicked" Margin="4,0,36,0" VerticalAlignment="Center">
+                        <BreadcrumbBar.ItemTemplate><DataTemplate x:DataType="models:BreadcrumbItem"><TextBlock Text="{x:Bind Name}" FontSize="13"/></DataTemplate></BreadcrumbBar.ItemTemplate>
+                    </BreadcrumbBar>
                     <TextBox x:Name="AddressBox" Visibility="Collapsed" BorderThickness="0" Background="White" VerticalContentAlignment="Center" Margin="2,1,36,1" KeyDown="AddressBox_KeyDown" LostFocus="AddressBox_LostFocus" PlaceholderText="Escribí una ruta"/>
-                    <Button x:Name="AddressEditButton" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Click="AddressEditButton_Click" ToolTipService.ToolTip="Editar ruta (Ctrl+L)"><SymbolIcon Symbol="Edit"/></Button>
+                    <Button x:Name="AddressEditButton" Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Click="AddressEditButton_Click"><SymbolIcon Symbol="Edit"/></Button>
                 </Grid>
             </Border>
             <TextBox x:Name="SearchBox" Grid.Column="5" Margin="4,0" Height="34" VerticalContentAlignment="Center" PlaceholderText="Buscar" TextChanged="SearchBox_TextChanged"/>
-            <Button x:Name="RefreshButton" Grid.Column="6" Style="{StaticResource CloverNavigationButtonStyle}" Click="RefreshButton_Click" ToolTipService.ToolTip="Actualizar"><SymbolIcon Symbol="Sync"/></Button>
+            <Button x:Name="RefreshButton" Grid.Column="6" Style="{StaticResource CloverNavigationButtonStyle}" Click="RefreshButton_Click"><SymbolIcon Symbol="Sync"/></Button>
         </Grid>
 
+        <!-- Contenido -->
         <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="252"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Grid Grid.Column="0" Background="{StaticResource CloverSidebarBrush}" Padding="6,5">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="250"/><RowDefinition Height="1"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                <TextBlock Text="Acceso rápido" Margin="8,3,8,5" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource CloverMutedTextBrush}"/>
-                <ListView x:Name="QuickAccessList" Grid.Row="1" IsItemClickEnabled="True" ItemClick="QuickAccessList_ItemClick" SelectionMode="None" Background="Transparent" BorderThickness="0">
-                    <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="MinHeight" Value="30"/><Setter Property="Margin" Value="0"/><Setter Property="Padding" Value="0"/></Style></ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate><DataTemplate x:DataType="models:QuickLocation"><Grid Height="30" ColumnSpacing="8" Padding="8,0"><Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid Width="18" Height="18" VerticalAlignment="Center"><SymbolIcon Symbol="{x:Bind Symbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="18" Height="18" Stretch="Uniform"/></Grid><TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{StaticResource CloverTextBrush}"/></Grid></DataTemplate></ListView.ItemTemplate>
-                </ListView>
-                <Border Grid.Row="2" Background="{StaticResource CloverBorderBrush}" Margin="4,2"/>
-                <TextBlock Grid.Row="3" Text="Este equipo" Margin="8,5,8,4" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource CloverMutedTextBrush}"/>
-                <TreeView x:Name="FolderTree" Grid.Row="4" SelectionMode="Single" Expanding="FolderTree_Expanding" ItemInvoked="FolderTree_ItemInvoked" Background="Transparent" BorderThickness="0">
-                    <TreeView.ItemTemplate><DataTemplate><Grid Height="29" ColumnSpacing="7"><Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid Width="18" Height="18" VerticalAlignment="Center"><SymbolIcon Symbol="{Binding Content.Symbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{Binding Content.IconSource}" Width="18" Height="18" Stretch="Uniform"/></Grid><TextBlock Grid.Column="1" Text="{Binding Content.Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="184"/></Grid></DataTemplate></TreeView.ItemTemplate>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+            <!-- Árbol único estilo Explorer clásico -->
+            <Grid Grid.Column="0" Background="{StaticResource CloverSidebarBrush}" Padding="4,5">
+                <ListView x:Name="QuickAccessList" Visibility="Collapsed" IsItemClickEnabled="True" ItemClick="QuickAccessList_ItemClick"/>
+                <TreeView x:Name="FolderTree" SelectionMode="Single" Expanding="FolderTree_Expanding" ItemInvoked="FolderTree_ItemInvoked" Background="Transparent" BorderThickness="0">
+                    <TreeView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="30" ColumnSpacing="7">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                    <SymbolIcon Symbol="{Binding Content.Symbol}" Foreground="{StaticResource CloverAccentBrush}"/>
+                                    <Image Source="{Binding Content.IconSource}" Width="18" Height="18" Stretch="Uniform"/>
+                                </Grid>
+                                <TextBlock Grid.Column="1" Text="{Binding Content.Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
+                            </Grid>
+                        </DataTemplate>
+                    </TreeView.ItemTemplate>
                 </TreeView>
             </Grid>
+
             <Border Grid.Column="1" Background="{StaticResource CloverBorderBrush}"/>
+
+            <!-- Área de archivos -->
             <Grid Grid.Column="2" Background="{StaticResource CloverPanelBrush}">
                 <Grid.RowDefinitions><RowDefinition Height="34"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                 <Grid x:Name="DetailsHeader" Grid.Row="0" Padding="10,0" ColumnSpacing="8" Background="{StaticResource CloverHeaderBrush}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="150"/><ColumnDefinition Width="92"/></Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="Nombre" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource CloverTextBrush}"/><TextBlock Grid.Column="2" Text="Tipo" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource CloverTextBrush}"/><TextBlock Grid.Column="3" Text="Fecha de modificación" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource CloverTextBrush}"/><TextBlock Grid.Column="4" Text="Tamaño" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="12" Foreground="{StaticResource CloverTextBrush}"/>
+                    <TextBlock Grid.Column="1" Text="Nombre" VerticalAlignment="Center" FontSize="12"/>
+                    <TextBlock Grid.Column="2" Text="Tipo" VerticalAlignment="Center" FontSize="12"/>
+                    <TextBlock Grid.Column="3" Text="Fecha de modificación" VerticalAlignment="Center" FontSize="12"/>
+                    <TextBlock Grid.Column="4" Text="Tamaño" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="12"/>
                 </Grid>
-                <ListView x:Name="FilesListView" Grid.Row="1" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" DoubleTapped="FilesListView_DoubleTapped" RightTapped="FilesListView_RightTapped" SelectionChanged="FilesListView_SelectionChanged" Background="Transparent" BorderThickness="0">
+
+                <ListView x:Name="FilesListView" Grid.Row="1" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" CanDragItems="True" AllowDrop="True" DragItemsStarting="FileArea_DragItemsStarting" DragOver="FileArea_DragOver" Drop="FileArea_Drop" DoubleTapped="FilesListView_DoubleTapped" RightTapped="FilesListView_RightTapped" SelectionChanged="FilesListView_SelectionChanged" Background="Transparent" BorderThickness="0">
                     <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="MinHeight" Value="34"/><Setter Property="Padding" Value="0"/></Style></ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate><DataTemplate x:DataType="models:FileEntry"><Grid MinHeight="34" Padding="10,1" ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="150"/><ColumnDefinition Width="92"/></Grid.ColumnDefinitions><Grid Width="24" Height="24" VerticalAlignment="Center"><SymbolIcon Symbol="{x:Bind FallbackSymbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="24" Height="24" Stretch="Uniform"/></Grid><TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{StaticResource CloverTextBrush}"/><TextBlock Grid.Column="2" Text="{x:Bind TypeLabel}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="3" Text="{x:Bind ModifiedDisplay}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}"/><TextBlock Grid.Column="4" Text="{x:Bind SizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource CloverMutedTextBrush}"/></Grid></DataTemplate></ListView.ItemTemplate>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:FileEntry">
+                            <Grid MinHeight="34" Padding="10,1" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="150"/><ColumnDefinition Width="92"/></Grid.ColumnDefinitions>
+                                <Grid Width="24" Height="24" VerticalAlignment="Center"><SymbolIcon Symbol="{x:Bind FallbackSymbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="24" Height="24" Stretch="Uniform"/></Grid>
+                                <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="2" Text="{x:Bind TypeLabel}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="3" Text="{x:Bind ModifiedDisplay}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}"/>
+                                <TextBlock Grid.Column="4" Text="{x:Bind SizeDisplay}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{StaticResource CloverMutedTextBrush}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
                 </ListView>
-                <ListView x:Name="CompactListView" Grid.RowSpan="2" Visibility="Collapsed" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" DoubleTapped="AlternateView_DoubleTapped" RightTapped="AlternateView_RightTapped" SelectionChanged="AlternateView_SelectionChanged" Background="Transparent" BorderThickness="0">
+
+                <ListView x:Name="CompactListView" Grid.RowSpan="2" Visibility="Collapsed" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" CanDragItems="True" AllowDrop="True" DragItemsStarting="FileArea_DragItemsStarting" DragOver="FileArea_DragOver" Drop="FileArea_Drop" DoubleTapped="AlternateView_DoubleTapped" RightTapped="AlternateView_RightTapped" SelectionChanged="AlternateView_SelectionChanged" Background="Transparent" BorderThickness="0">
                     <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="MinHeight" Value="36"/></Style></ListView.ItemContainerStyle>
                     <ListView.ItemTemplate><DataTemplate x:DataType="models:FileEntry"><Grid Padding="12,3" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Grid Width="24" Height="24"><SymbolIcon Symbol="{x:Bind FallbackSymbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="24" Height="24"/></Grid><TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="2" Text="{x:Bind TypeLabel}" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}" Margin="16,0,8,0"/></Grid></DataTemplate></ListView.ItemTemplate>
                 </ListView>
-                <GridView x:Name="IconsGridView" Grid.RowSpan="2" Visibility="Collapsed" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" DoubleTapped="AlternateView_DoubleTapped" RightTapped="AlternateView_RightTapped" SelectionChanged="AlternateView_SelectionChanged" Background="Transparent" BorderThickness="0" Padding="12">
+
+                <GridView x:Name="IconsGridView" Grid.RowSpan="2" Visibility="Collapsed" ItemsSource="{x:Bind Entries}" SelectionMode="Extended" CanDragItems="True" AllowDrop="True" DragItemsStarting="FileArea_DragItemsStarting" DragOver="FileArea_DragOver" Drop="FileArea_Drop" DoubleTapped="AlternateView_DoubleTapped" RightTapped="AlternateView_RightTapped" SelectionChanged="AlternateView_SelectionChanged" Background="Transparent" BorderThickness="0" Padding="12">
                     <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid ItemWidth="128" ItemHeight="112" Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
                     <GridView.ItemTemplate><DataTemplate x:DataType="models:FileEntry"><Grid Width="116" Height="100" Padding="6"><Grid.RowDefinitions><RowDefinition Height="62"/><RowDefinition Height="*"/></Grid.RowDefinitions><Grid Width="52" Height="52" HorizontalAlignment="Center" VerticalAlignment="Center"><SymbolIcon Symbol="{x:Bind FallbackSymbol}" Foreground="{StaticResource CloverAccentBrush}" Width="42" Height="42"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="52" Height="52" Stretch="Uniform"/></Grid><TextBlock Grid.Row="1" Text="{x:Bind Name}" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" FontSize="12"/></Grid></DataTemplate></GridView.ItemTemplate>
                 </GridView>
             </Grid>
         </Grid>
 
-        <Grid Grid.Row="3" Background="{StaticResource CloverStatusBrush}" Padding="10,0"><TextBlock x:Name="StatusText" Text="Listo" FontSize="12" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}"/><ProgressRing x:Name="BusyRing" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Center" IsActive="False" Visibility="Collapsed"/></Grid>
+        <Grid Grid.Row="3" Background="{StaticResource CloverStatusBrush}" Padding="10,0">
+            <TextBlock x:Name="StatusText" Text="Listo" FontSize="12" VerticalAlignment="Center" Foreground="{StaticResource CloverMutedTextBrush}"/>
+            <ProgressRing x:Name="BusyRing" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Center" IsActive="False" Visibility="Collapsed"/>
+        </Grid>
     </Grid>
 </UserControl>
