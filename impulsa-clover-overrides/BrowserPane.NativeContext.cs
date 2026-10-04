@@ -18,8 +18,6 @@ public sealed partial class BrowserPane
 
         _nativeContextMenusInstalled = true;
 
-        // Remove every older right-click/context handler so only one path handles
-        // the request. This avoids double flyouts and Shell helper races.
         FilesListView.RightTapped -= FilesListView_RightTapped;
         CompactListView.RightTapped -= AlternateView_RightTapped;
         IconsGridView.RightTapped -= AlternateView_RightTapped;
@@ -51,8 +49,6 @@ public sealed partial class BrowserPane
             _ => null
         };
 
-        // Keyboard context requests (Shift+F10 / Menu key) can arrive without
-        // a visual child as OriginalSource. Fall back to the selected item.
         if (item is null && source.SelectedItem is FileEntry selected)
         {
             item = selected;
@@ -75,15 +71,61 @@ public sealed partial class BrowserPane
         SyncSelectionToDetails(source);
         args.Handled = true;
 
-        // Always show the safe Impulsa menu first. The full Windows Shell menu
-        // is optional and launched only from "Más opciones de Windows…".
-        var menu = CreateFileContextMenu(item);
+        BuildSafeFileContextMenu(source, item).ShowAt(container);
+    }
+
+    private MenuFlyout BuildSafeFileContextMenu(ListViewBase source, FileEntry item)
+    {
+        var menu = new MenuFlyout();
+
+        var open = new MenuFlyoutItem { Text = "Abrir", Icon = new SymbolIcon(Symbol.OpenFile) };
+        open.Click += async (_, _) => await OpenEntryAsync(item);
+        menu.Items.Add(open);
+
+        if (item.IsFolder || item.IsDrive)
+        {
+            var newTab = new MenuFlyoutItem { Text = "Abrir en nueva pestaña", Icon = new SymbolIcon(Symbol.Add) };
+            newTab.Click += (_, _) => OpenInNewTabRequested?.Invoke(this, item.FullPath);
+            menu.Items.Add(newTab);
+        }
+
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var moreWindows = new MenuFlyoutItem
+        var cut = new MenuFlyoutItem { Text = "Cortar", Icon = new SymbolIcon(Symbol.Cut) };
+        cut.Click += (_, _) => CutSelected();
+        menu.Items.Add(cut);
+
+        var copy = new MenuFlyoutItem { Text = "Copiar", Icon = new SymbolIcon(Symbol.Copy) };
+        copy.Click += (_, _) => CopySelected();
+        menu.Items.Add(copy);
+
+        var copyPath = new MenuFlyoutItem { Text = "Copiar ruta" };
+        copyPath.Click += (_, _) => CopyPath(item.FullPath);
+        menu.Items.Add(copyPath);
+
+        menu.Items.Add(new MenuFlyoutSeparator());
+
+        var rename = new MenuFlyoutItem { Text = "Cambiar nombre", Icon = new SymbolIcon(Symbol.Rename) };
+        rename.Click += async (_, _) => await RenameSelectedAsync();
+        menu.Items.Add(rename);
+
+        var delete = new MenuFlyoutItem { Text = "Eliminar", Icon = new SymbolIcon(Symbol.Delete) };
+        delete.Click += async (_, _) => await DeleteSelectedAsync();
+        menu.Items.Add(delete);
+
+        menu.Items.Add(new MenuFlyoutSeparator());
+
+        var properties = new MenuFlyoutItem { Text = "Propiedades" };
+        properties.Click += (_, _) =>
         {
-            Text = "Más opciones de Windows…"
+            if (!ShellPropertiesService.Show(item.FullPath))
+                StatusText.Text = "Windows no pudo abrir las propiedades de este elemento.";
         };
+        menu.Items.Add(properties);
+
+        menu.Items.Add(new MenuFlyoutSeparator());
+
+        var moreWindows = new MenuFlyoutItem { Text = "Más opciones de Windows…" };
         moreWindows.Click += async (_, _) =>
         {
             var paths = source.SelectedItems
@@ -100,7 +142,7 @@ public sealed partial class BrowserPane
             var ok = await LaunchIsolatedShellMenuAsync(paths);
             if (!ok)
             {
-                StatusText.Text = "El menú extendido de Windows no respondió. Impulsa sigue funcionando.";
+                StatusText.Text = "El menú extendido de Windows no respondió. El menú seguro sigue disponible.";
                 return;
             }
 
@@ -109,7 +151,7 @@ public sealed partial class BrowserPane
         };
         menu.Items.Add(moreWindows);
 
-        menu.ShowAt(container);
+        return menu;
     }
 
     private async Task<bool> LaunchIsolatedShellMenuAsync(IReadOnlyCollection<string> paths)
@@ -212,7 +254,11 @@ public sealed partial class BrowserPane
         if (Directory.Exists(CurrentPath))
         {
             var properties = new MenuFlyoutItem { Text = "Propiedades de esta carpeta" };
-            properties.Click += (_, _) => ShowProperties(CurrentPath);
+            properties.Click += (_, _) =>
+            {
+                if (!ShellPropertiesService.Show(CurrentPath))
+                    StatusText.Text = "Windows no pudo abrir las propiedades de esta carpeta.";
+            };
             menu.Items.Add(properties);
         }
 
