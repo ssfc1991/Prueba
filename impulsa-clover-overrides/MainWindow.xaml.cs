@@ -16,7 +16,16 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         Title = "Impulsa Explorer — Clover Edition";
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1320, 840));
+
+        try
+        {
+            AppWindow.Resize(new Windows.Graphics.SizeInt32(1320, 840));
+        }
+        catch (Exception ex)
+        {
+            App.WriteLog("No se pudo aplicar tamaño inicial de ventana", ex);
+        }
+
         TryEnableMica();
         Closed += MainWindow_Closed;
         ConfigureKeyboardShortcuts();
@@ -25,20 +34,29 @@ public sealed partial class MainWindow : Window
 
     private async Task RestoreSessionAsync()
     {
-        var tabs = StateService.Current.State.SessionTabs
-            .Where(p => p == BrowserPane.ThisPcPath || Directory.Exists(p))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(12)
-            .ToList();
+        try
+        {
+            var tabs = StateService.Current.State.SessionTabs
+                .Where(p => p == BrowserPane.ThisPcPath || Directory.Exists(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(12)
+                .ToList();
 
-        if (tabs.Count == 0)
-            tabs.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+            if (tabs.Count == 0)
+                tabs.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
-        foreach (var path in tabs)
-            await AddTabAsync(path, select: false);
+            foreach (var path in tabs)
+                await AddTabAsync(path, select: false);
 
-        if (MainTabs.TabItems.Count > 0)
-            MainTabs.SelectedIndex = 0;
+            if (MainTabs.TabItems.Count > 0)
+                MainTabs.SelectedIndex = 0;
+        }
+        catch (Exception ex)
+        {
+            App.WriteLog("Fallo restaurando sesión", ex);
+            if (MainTabs.TabItems.Count == 0)
+                await AddTabAsync(BrowserPane.ThisPcPath, select: true);
+        }
     }
 
     private async Task<TabViewItem> AddTabAsync(string? path = null, bool select = true)
@@ -89,9 +107,9 @@ public sealed partial class MainWindow : Window
         {
             SystemBackdrop = new MicaBackdrop();
         }
-        catch
+        catch (Exception ex)
         {
-            // Windows 10 o equipos sin soporte: WinUI usa el fondo normal.
+            App.WriteLog("Mica no disponible; se usa fondo normal", ex);
         }
     }
 
@@ -183,9 +201,7 @@ public sealed partial class MainWindow : Window
     private void FocusAddressBar()
     {
         if (MainTabs.SelectedItem is TabViewItem { Content: BrowserPane pane })
-        {
             pane.FocusAddressBar();
-        }
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
