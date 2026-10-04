@@ -13,6 +13,8 @@ public partial class App : Application
 
     public App()
     {
+        TryDeleteOldCrashLog();
+
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             WriteLog("AppDomain.UnhandledException", e.ExceptionObject as Exception);
 
@@ -31,9 +33,7 @@ public partial class App : Application
 
         try
         {
-            WriteLog("Inicio de App");
             InitializeComponent();
-            WriteLog("App.InitializeComponent OK");
         }
         catch (Exception ex)
         {
@@ -47,10 +47,8 @@ public partial class App : Application
     {
         try
         {
-            WriteLog("OnLaunched");
             MainAppWindow = new MainWindow();
             MainAppWindow.Activate();
-            WriteLog("Ventana principal activada");
         }
         catch (Exception ex)
         {
@@ -74,6 +72,18 @@ public partial class App : Application
                 writer.WriteLine(ex.ToString());
                 writer.WriteLine(new string('-', 80));
             }
+        }
+        catch
+        {
+        }
+    }
+
+    private static void TryDeleteOldCrashLog()
+    {
+        try
+        {
+            if (File.Exists(LogPath))
+                File.Delete(LogPath);
         }
         catch
         {
