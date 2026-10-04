@@ -18,9 +18,15 @@ public sealed partial class BrowserPane
 
         _nativeContextMenusInstalled = true;
 
+        // Remove every older right-click/context handler so only one path handles
+        // the request. This avoids double flyouts and Shell helper races.
         FilesListView.RightTapped -= FilesListView_RightTapped;
         CompactListView.RightTapped -= AlternateView_RightTapped;
         IconsGridView.RightTapped -= AlternateView_RightTapped;
+
+        FilesListView.ContextRequested -= FileArea_ContextRequested;
+        CompactListView.ContextRequested -= FileArea_ContextRequested;
+        IconsGridView.ContextRequested -= FileArea_ContextRequested;
 
         FilesListView.ContextRequested += FileArea_NativeContextRequested;
         CompactListView.ContextRequested += FileArea_NativeContextRequested;
@@ -29,30 +35,36 @@ public sealed partial class BrowserPane
         InstallMoreViews();
     }
 
-    private async void FileArea_NativeContextRequested(UIElement sender, ContextRequestedEventArgs args)
+    private void FileArea_NativeContextRequested(UIElement sender, ContextRequestedEventArgs args)
     {
         if (sender is not ListViewBase source)
             return;
 
-        FrameworkElement? container = (FrameworkElement?)FindParent<GridViewItem>(args.OriginalSource as DependencyObject)
-            ?? FindParent<ListViewItem>(args.OriginalSource as DependencyObject);
+        var origin = args.OriginalSource as DependencyObject;
+        FrameworkElement? container = FindParent<ListViewItem>(origin);
+        container ??= FindParent<GridViewItem>(origin);
 
-        if (container is null)
+        var item = container switch
+        {
+            ListViewItem listItem => listItem.Content as FileEntry,
+            GridViewItem gridItem => gridItem.Content as FileEntry,
+            _ => null
+        };
+
+        // Keyboard context requests (Shift+F10 / Menu key) can arrive without
+        // a visual child as OriginalSource. Fall back to the selected item.
+        if (item is null && source.SelectedItem is FileEntry selected)
+        {
+            item = selected;
+            container = source.ContainerFromItem(selected) as FrameworkElement;
+        }
+
+        if (item is null || container is null)
         {
             ShowBackgroundContextMenu(source);
             args.Handled = true;
             return;
         }
-
-        var item = container switch
-        {
-            GridViewItem gridItem => gridItem.Content as FileEntry,
-            ListViewItem listItem => listItem.Content as FileEntry,
-            _ => null
-        };
-
-        if (item is null)
-            return;
 
         if (!source.SelectedItems.Contains(item))
         {
@@ -61,31 +73,43 @@ public sealed partial class BrowserPane
         }
 
         SyncSelectionToDetails(source);
-
-        var paths = source.SelectedItems
-            .OfType<FileEntry>()
-            .Select(entry => entry.FullPath)
-            .Where(path => !string.IsNullOrWhiteSpace(path))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (paths.Length == 0)
-            paths = [item.FullPath];
-
         args.Handled = true;
 
-        var nativeMenuSucceeded = await LaunchIsolatedShellMenuAsync(paths);
-        if (!nativeMenuSucceeded)
-        {
-            // A third-party Shell extension may have crashed the helper process.
-            // Keep the main explorer alive and fall back to our safe menu.
-            CreateFileContextMenu(item).ShowAt(container);
-            StatusText.Text = "Una extensión del menú de Windows falló; se mostró el menú seguro de Impulsa.";
-            return;
-        }
+        // Always show the safe Impulsa menu first. The full Windows Shell menu
+        // is optional and launched only from "Más opciones de Windows…".
+        var menu = CreateFileContextMenu(item);
+        menu.Items.Add(new MenuFlyoutSeparator());
 
-        if (CurrentPath != ThisPcPath && Directory.Exists(CurrentPath))
-            await NavigateToAsync(CurrentPath, false);
+        var moreWindows = new MenuFlyoutItem
+        {
+            Text = "Más opciones de Windows…"
+        };
+        moreWindows.Click += async (_, _) =>
+        {
+            var paths = source.SelectedItems
+                .OfType<FileEntry>()
+                .Select(entry => entry.FullPath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (paths.Length == 0)
+                paths = [item.FullPath];
+
+            StatusText.Text = "Abriendo opciones de Windows…";
+            var ok = await LaunchIsolatedShellMenuAsync(paths);
+            if (!ok)
+            {
+                StatusText.Text = "El menú extendido de Windows no respondió. Impulsa sigue funcionando.";
+                return;
+            }
+
+            if (CurrentPath != ThisPcPath && Directory.Exists(CurrentPath))
+                await NavigateToAsync(CurrentPath, false);
+        };
+        menu.Items.Add(moreWindows);
+
+        menu.ShowAt(container);
     }
 
     private async Task<bool> LaunchIsolatedShellMenuAsync(IReadOnlyCollection<string> paths)
@@ -187,7 +211,7 @@ public sealed partial class BrowserPane
 
         if (Directory.Exists(CurrentPath))
         {
-            var properties = new MenuFlyoutItem { Text = "Propiedades" };
+            var properties = new MenuFlyoutItem { Text = "Propiedades de esta carpeta" };
             properties.Click += (_, _) => ShowProperties(CurrentPath);
             menu.Items.Add(properties);
         }
