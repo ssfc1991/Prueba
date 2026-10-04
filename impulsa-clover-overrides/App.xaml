@@ -8,30 +8,35 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
-            <Thickness x:Key="CloverPagePadding">10</Thickness>
+            <Thickness x:Key="CloverPagePadding">0</Thickness>
 
             <SolidColorBrush x:Key="CloverWindowBrush" Color="#FFF3F3F3"/>
             <SolidColorBrush x:Key="CloverPanelBrush" Color="#FFFFFFFF"/>
-            <SolidColorBrush x:Key="CloverPanelAltBrush" Color="#FFF8F8F8"/>
-            <SolidColorBrush x:Key="CloverBorderBrush" Color="#FFD7D7D7"/>
+            <SolidColorBrush x:Key="CloverPanelAltBrush" Color="#FFF7F7F7"/>
+            <SolidColorBrush x:Key="CloverToolbarBrush" Color="#FFF7F7F7"/>
+            <SolidColorBrush x:Key="CloverCommandBrush" Color="#FFFBFBFB"/>
+            <SolidColorBrush x:Key="CloverSidebarBrush" Color="#FFF4F4F4"/>
+            <SolidColorBrush x:Key="CloverHeaderBrush" Color="#FFF8F8F8"/>
+            <SolidColorBrush x:Key="CloverStatusBrush" Color="#FFF7F7F7"/>
+            <SolidColorBrush x:Key="CloverBorderBrush" Color="#FFE3E3E3"/>
             <SolidColorBrush x:Key="CloverTextBrush" Color="#FF202020"/>
-            <SolidColorBrush x:Key="CloverMutedTextBrush" Color="#FF606060"/>
+            <SolidColorBrush x:Key="CloverMutedTextBrush" Color="#FF666666"/>
             <SolidColorBrush x:Key="CloverAccentBrush" Color="#FF0067C0"/>
+            <SolidColorBrush x:Key="CloverTabBrush" Color="#FFF3F3F3"/>
 
             <Style x:Key="CloverNavigationButtonStyle" TargetType="Button">
-                <Setter Property="Width" Value="36"/>
-                <Setter Property="Height" Value="36"/>
+                <Setter Property="Width" Value="34"/>
+                <Setter Property="Height" Value="34"/>
                 <Setter Property="Padding" Value="0"/>
-                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="CornerRadius" Value="4"/>
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{StaticResource CloverTextBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource CloverBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
             </Style>
 
             <Style x:Key="CloverAddressBoxStyle" TargetType="TextBox">
-                <Setter Property="Height" Value="36"/>
-                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="Height" Value="34"/>
+                <Setter Property="CornerRadius" Value="4"/>
                 <Setter Property="Padding" Value="10,0"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Background" Value="White"/>
