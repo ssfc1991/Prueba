@@ -73,10 +73,29 @@ jobs:
           if (-not (Test-Path $exe)) { throw "Portable executable was not generated" }
           Get-Item $exe | Format-List FullName,Length,LastWriteTime
 
+      - name: Smoke test startup
+        shell: pwsh
+        run: |
+          $exe = Join-Path "${{ github.workspace }}" "artifact\\portable\\ImpulsaExplorer.exe"
+          $desktop = [Environment]::GetFolderPath('DesktopDirectory')
+          $log = Join-Path $desktop 'ImpulsaExplorer_Crash.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
+          $p = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -PassThru
+          Start-Sleep -Seconds 8
+          if (Test-Path $log) {
+            Write-Host 'Crash log detected:'
+            Get-Content $log
+            if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+            throw 'Impulsa Explorer generated a startup crash log.'
+          }
+          if ($p.HasExited) { throw "Impulsa Explorer exited during startup with code $($p.ExitCode)." }
+          Stop-Process -Id $p.Id -Force
+          Write-Host 'Startup smoke test passed.'
+
       - name: Upload Clover portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-COMPAT-win-x64
+          name: ImpulsaExplorer-CLOVER-XAML-FIX-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
