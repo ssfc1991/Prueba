@@ -31,7 +31,7 @@ jobs:
           $project = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj"
           if (-not (Test-Path $project)) { throw "Project reconstruction failed" }
 
-      - name: Apply Clover Edition overrides
+      - name: Apply Clover Windows Explorer overrides
         shell: pwsh
         run: |
           $root = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer"
@@ -40,14 +40,10 @@ jobs:
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml" "$root/MainWindow.xaml" -Force
           Copy-Item "impulsa-clover-overrides/MainWindow.xaml.cs" "$root/MainWindow.xaml.cs" -Force
           Copy-Item "impulsa-clover-overrides/BrowserPane.xaml" "$root/Controls/BrowserPane.xaml" -Force
+          Copy-Item "impulsa-clover-overrides/BrowserPane.xaml.cs" "$root/Controls/BrowserPane.xaml.cs" -Force
+          Copy-Item "impulsa-clover-overrides/FileEntry.cs" "$root/Models/FileEntry.cs" -Force
+          Copy-Item "impulsa-clover-overrides/ShellIconService.cs" "$root/Services/ShellIconService.cs" -Force
           Copy-Item "impulsa-clover-overrides/Directory.Build.targets" "$root/Directory.Build.targets" -Force
-
-          $fileEntry = "$root/Models/FileEntry.cs"
-          $text = Get-Content $fileEntry -Raw
-          $text = $text.Replace('public required string Name { get; init; }', 'public string Name { get; set; } = "";')
-          $text = $text.Replace('public required string FullPath { get; init; }', 'public string FullPath { get; set; } = "";')
-          $text = $text.Replace('{ get; init; }', '{ get; set; }')
-          Set-Content -Path $fileEntry -Value $text -Encoding utf8
 
           $quickLocation = "$root/Models/QuickLocation.cs"
           $text = Get-Content $quickLocation -Raw
@@ -74,8 +70,7 @@ jobs:
           $exe = Join-Path $out "ImpulsaExplorer.exe"
           if (-not (Test-Path $exe)) { throw "Portable executable was not generated" }
           $pris = @(Get-ChildItem $out -Filter "*.pri" -File)
-          Write-Host "PRI files in publish output:"
-          $pris | ForEach-Object { Write-Host "  $($_.Name)  $($_.Length) bytes" }
+          $pris | ForEach-Object { Write-Host "PRI: $($_.Name) $($_.Length) bytes" }
           $appPri = $pris | Where-Object { $_.Name -ieq 'ImpulsaExplorer.pri' -or $_.Name -ieq 'resources.pri' }
           if (-not $appPri) { throw "Application PRI is missing from publish output" }
           Get-Item $exe | Format-List FullName,Length,LastWriteTime
@@ -88,7 +83,7 @@ jobs:
           $log = Join-Path $desktop 'ImpulsaExplorer_Crash.log'
           if (Test-Path $log) { Remove-Item $log -Force }
           $p = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -PassThru
-          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 12
           if (Test-Path $log) {
             Write-Host 'Crash log detected:'
             Get-Content $log
@@ -99,10 +94,10 @@ jobs:
           Stop-Process -Id $p.Id -Force
           Write-Host 'Startup smoke test passed.'
 
-      - name: Upload Clover fixed portable
+      - name: Upload Clover Windows Icons portable
         uses: actions/upload-artifact@v4
         with:
-          name: ImpulsaExplorer-CLOVER-PRI-FIX-win-x64
+          name: ImpulsaExplorer-CLOVER-WINDOWS-ICONS-win-x64
           path: artifact/portable/**
           if-no-files-found: error
           retention-days: 7
