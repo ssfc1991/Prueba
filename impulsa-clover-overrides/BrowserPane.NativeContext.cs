@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ImpulsaExplorer.Models;
 using ImpulsaExplorer.Services;
 using Microsoft.UI.Xaml;
@@ -24,6 +25,8 @@ public sealed partial class BrowserPane
         FilesListView.ContextRequested += FileArea_NativeContextRequested;
         CompactListView.ContextRequested += FileArea_NativeContextRequested;
         IconsGridView.ContextRequested += FileArea_NativeContextRequested;
+
+        InstallMoreViews();
     }
 
     private async void FileArea_NativeContextRequested(UIElement sender, ContextRequestedEventArgs args)
@@ -71,16 +74,65 @@ public sealed partial class BrowserPane
 
         args.Handled = true;
 
-        var shown = NativeShellContextMenuService.Show(paths);
-        if (!shown)
+        var nativeMenuSucceeded = await LaunchIsolatedShellMenuAsync(paths);
+        if (!nativeMenuSucceeded)
         {
+            // A third-party Shell extension may have crashed the helper process.
+            // Keep the main explorer alive and fall back to our safe menu.
             CreateFileContextMenu(item).ShowAt(container);
+            StatusText.Text = "Una extensión del menú de Windows falló; se mostró el menú seguro de Impulsa.";
             return;
         }
 
-        await Task.Delay(180);
         if (CurrentPath != ThisPcPath && Directory.Exists(CurrentPath))
             await NavigateToAsync(CurrentPath, false);
+    }
+
+    private async Task<bool> LaunchIsolatedShellMenuAsync(IReadOnlyCollection<string> paths)
+    {
+        string? requestFile = null;
+        try
+        {
+            var processPath = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(processPath) || !File.Exists(processPath))
+                return false;
+
+            var requestDirectory = Path.Combine(Path.GetTempPath(), "ImpulsaExplorer", "ShellMenu");
+            Directory.CreateDirectory(requestDirectory);
+            requestFile = Path.Combine(requestDirectory, $"menu-{Guid.NewGuid():N}.txt");
+            await File.WriteAllLinesAsync(requestFile, paths);
+
+            var startInfo = new ProcessStartInfo(processPath)
+            {
+                UseShellExecute = false,
+                WorkingDirectory = AppContext.BaseDirectory,
+                CreateNoWindow = true
+            };
+            startInfo.ArgumentList.Add(ShellMenuHostRunner.RequestArgument);
+            startInfo.ArgumentList.Add(requestFile);
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+                return false;
+
+            await process.WaitForExitAsync();
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+        finally
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(requestFile) && File.Exists(requestFile))
+                    File.Delete(requestFile);
+            }
+            catch
+            {
+            }
+        }
     }
 
     private void SyncSelectionToDetails(ListViewBase source)
