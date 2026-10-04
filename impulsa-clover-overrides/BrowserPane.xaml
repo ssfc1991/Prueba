@@ -105,11 +105,11 @@
 
                 <TreeView x:Name="FolderTree" Grid.Row="4" SelectionMode="Single" Expanding="FolderTree_Expanding" ItemInvoked="FolderTree_ItemInvoked" Background="Transparent" BorderThickness="0">
                     <TreeView.ItemTemplate>
-                        <DataTemplate x:DataType="models:TreeLocation">
+                        <DataTemplate>
                             <Grid Height="30" ColumnSpacing="7">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                <Grid Width="18" Height="18" VerticalAlignment="Center"><SymbolIcon Symbol="{x:Bind Symbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{x:Bind IconSource, Mode=OneWay}" Width="18" Height="18" Stretch="Uniform"/></Grid>
-                                <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="172"/>
+                                <Grid Width="18" Height="18" VerticalAlignment="Center"><SymbolIcon Symbol="{Binding Content.Symbol}" Foreground="{StaticResource CloverAccentBrush}"/><Image Source="{Binding Content.IconSource}" Width="18" Height="18" Stretch="Uniform"/></Grid>
+                                <TextBlock Grid.Column="1" Text="{Binding Content.Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="172"/>
                             </Grid>
                         </DataTemplate>
                     </TreeView.ItemTemplate>
