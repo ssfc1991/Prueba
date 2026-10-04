@@ -25,7 +25,9 @@ jobs:
           if ($parts.Count -ne 4) { throw "Expected 4 source chunks, found $($parts.Count)" }
           $b64 = ($parts | ForEach-Object { Get-Content $_.FullName -Raw }) -join ''
           [IO.File]::WriteAllBytes("impulsa-clover-source.zip", [Convert]::FromBase64String($b64))
-          Expand-Archive -Path "impulsa-clover-source.zip" -DestinationPath "clover-src" -Force
+          New-Item -ItemType Directory -Force -Path "clover-src" | Out-Null
+          tar -xf "impulsa-clover-source.zip" -C "clover-src"
+          if ($LASTEXITCODE -ne 0) { throw "tar could not extract source archive" }
           $project = "clover-src/IMPULSA_EXPLORER_V01/src/ImpulsaExplorer/ImpulsaExplorer.csproj"
           if (-not (Test-Path $project)) { throw "Project reconstruction failed" }
 
