@@ -9,7 +9,14 @@
             </ResourceDictionary.MergedDictionaries>
 
             <Thickness x:Key="CloverPagePadding">10</Thickness>
-            <CornerRadius x:Key="CloverCornerRadius">8</CornerRadius>
+
+            <SolidColorBrush x:Key="CloverWindowBrush" Color="#FFF3F3F3"/>
+            <SolidColorBrush x:Key="CloverPanelBrush" Color="#FFFFFFFF"/>
+            <SolidColorBrush x:Key="CloverPanelAltBrush" Color="#FFF8F8F8"/>
+            <SolidColorBrush x:Key="CloverBorderBrush" Color="#FFD7D7D7"/>
+            <SolidColorBrush x:Key="CloverTextBrush" Color="#FF202020"/>
+            <SolidColorBrush x:Key="CloverMutedTextBrush" Color="#FF606060"/>
+            <SolidColorBrush x:Key="CloverAccentBrush" Color="#FF0067C0"/>
 
             <Style x:Key="CloverNavigationButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="36"/>
@@ -17,6 +24,8 @@
                 <Setter Property="Padding" Value="0"/>
                 <Setter Property="CornerRadius" Value="6"/>
                 <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource CloverTextBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource CloverBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
             </Style>
 
@@ -25,8 +34,10 @@
                 <Setter Property="CornerRadius" Value="6"/>
                 <Setter Property="Padding" Value="10,0"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="Background" Value="{ThemeResource ControlFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="{StaticResource CloverTextBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource CloverBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>
