@@ -1,20 +1,12 @@
 <Window
     x:Class="ImpulsaExplorer.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Impulsa Explorer — Clover Edition">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Background="#FFF3F3F3">
         <TabView x:Name="MainTabs"
                  AddTabButtonClick="MainTabs_AddTabButtonClick"
                  TabCloseRequested="MainTabs_TabCloseRequested"
-                 SelectionChanged="MainTabs_SelectionChanged"
-                 CanDragTabs="True"
-                 CanReorderTabs="True"
-                 TabWidthMode="SizeToContent"
-                 IsAddTabButtonVisible="True"
-                 Background="Transparent"
-                 Margin="6,4,6,6">
-        </TabView>
+                 SelectionChanged="MainTabs_SelectionChanged"/>
     </Grid>
 </Window>
