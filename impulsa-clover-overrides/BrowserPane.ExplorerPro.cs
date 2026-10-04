@@ -29,6 +29,16 @@ public sealed partial class BrowserPane
         if (_explorerProInitialized) return;
         _explorerProInitialized = true;
 
+        // RightTapped was unreliable on some desktop mouse setups. Use the
+        // native context request event so right-click, Shift+F10 and the menu
+        // key all open the same menu.
+        FilesListView.RightTapped -= FilesListView_RightTapped;
+        CompactListView.RightTapped -= AlternateView_RightTapped;
+        IconsGridView.RightTapped -= AlternateView_RightTapped;
+        FilesListView.ContextRequested += FileArea_ContextRequested;
+        CompactListView.ContextRequested += FileArea_ContextRequested;
+        IconsGridView.ContextRequested += FileArea_ContextRequested;
+
         LocationChanged += BrowserPane_LocationChangedForSearch;
         _searchMaster = Entries.ToList();
         BuildFolderTree();
@@ -173,6 +183,97 @@ public sealed partial class BrowserPane
 
         CreateFileContextMenu(item).ShowAt(container);
         e.Handled = true;
+    }
+
+    private void FileArea_ContextRequested(UIElement sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not ListViewBase source) return;
+
+        var origin = e.OriginalSource as DependencyObject;
+        FrameworkElement? container = FindParent<ListViewItem>(origin);
+        container ??= FindParent<GridViewItem>(origin);
+
+        var item = container switch
+        {
+            ListViewItem listItem => listItem.Content as FileEntry,
+            GridViewItem gridItem => gridItem.Content as FileEntry,
+            _ => null
+        };
+
+        if (item is null && source.SelectedItem is FileEntry selected)
+        {
+            item = selected;
+            container = source.ContainerFromItem(selected) as FrameworkElement;
+        }
+
+        if (item is null || container is null)
+        {
+            CreateFolderBackgroundMenu().ShowAt(source);
+            e.Handled = true;
+            return;
+        }
+
+        _syncingSelection = true;
+        try
+        {
+            source.SelectedItems.Clear();
+            source.SelectedItems.Add(item);
+
+            FilesListView.SelectedItems.Clear();
+            FilesListView.SelectedItems.Add(item);
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+
+        CreateFileContextMenu(item).ShowAt(container);
+        e.Handled = true;
+    }
+
+    private MenuFlyout CreateFolderBackgroundMenu()
+    {
+        var menu = new MenuFlyout();
+
+        var paste = new MenuFlyoutItem
+        {
+            Text = "Pegar",
+            Icon = new SymbolIcon(Symbol.Paste),
+            IsEnabled = Directory.Exists(CurrentPath) && FileOperationService.Current.HasClipboard
+        };
+        paste.Click += async (_, _) =>
+        {
+            if (!Directory.Exists(CurrentPath) || !FileOperationService.Current.HasClipboard) return;
+            try
+            {
+                SetBusy(true, "Pegando…");
+                await FileOperationService.Current.PasteAsync(CurrentPath);
+                await NavigateToAsync(CurrentPath, false);
+            }
+            catch (Exception ex)
+            {
+                SetBusy(false, ex.Message);
+            }
+        };
+        menu.Items.Add(paste);
+
+        var refresh = new MenuFlyoutItem
+        {
+            Text = "Actualizar",
+            Icon = new SymbolIcon(Symbol.Sync)
+        };
+        refresh.Click += async (_, _) => await NavigateToAsync(CurrentPath, false);
+        menu.Items.Add(refresh);
+
+        if (Directory.Exists(CurrentPath))
+        {
+            menu.Items.Add(new MenuFlyoutSeparator());
+            var properties = new MenuFlyoutItem { Text = "Propiedades" };
+            properties.Click += (_, _) => ShowProperties(CurrentPath);
+            menu.Items.Add(properties);
+        }
+
+        return menu;
     }
 
     private void BuildFolderTree()
