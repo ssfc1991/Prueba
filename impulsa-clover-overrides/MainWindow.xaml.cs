@@ -16,20 +16,37 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         Title = "Impulsa Explorer — Clover Edition";
+        ConfigureTabViewSafely();
 
         try
         {
             AppWindow.Resize(new Windows.Graphics.SizeInt32(1320, 840));
         }
-        catch (Exception ex)
+        catch
         {
-            App.WriteLog("No se pudo aplicar tamaño inicial de ventana", ex);
         }
 
         TryEnableMica();
         Closed += MainWindow_Closed;
         ConfigureKeyboardShortcuts();
         _ = RestoreSessionAsync();
+    }
+
+    private void ConfigureTabViewSafely()
+    {
+        try
+        {
+            MainTabs.CanDragTabs = true;
+            MainTabs.CanReorderTabs = true;
+            MainTabs.TabWidthMode = TabViewWidthMode.SizeToContent;
+            MainTabs.IsAddTabButtonVisible = true;
+            MainTabs.Margin = new Thickness(6, 4, 6, 6);
+        }
+        catch
+        {
+            // Si una versión de Windows no soporta una opción visual,
+            // la app sigue funcionando con los valores predeterminados.
+        }
     }
 
     private async Task RestoreSessionAsync()
@@ -107,9 +124,8 @@ public sealed partial class MainWindow : Window
         {
             SystemBackdrop = new MicaBackdrop();
         }
-        catch (Exception ex)
+        catch
         {
-            App.WriteLog("Mica no disponible; se usa fondo normal", ex);
         }
     }
 
